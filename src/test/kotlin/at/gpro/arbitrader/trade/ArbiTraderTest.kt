@@ -20,6 +20,7 @@ internal class ArbiTraderTest {
         val FOUR = BigDecimal(4)
         val FIVE = BigDecimal(5)
         val SIX = BigDecimal(6)
+        val SEVEN = BigDecimal(7)
 
         val KRAKEN = object : Exchange {}
         val COINBASE = object : Exchange {}
@@ -29,45 +30,100 @@ internal class ArbiTraderTest {
     fun `no arbitrage with some orders`() {
         val trades = ArbiTrader().findTrades(
             OrderBook(
-                KRAKEN,
-                listOf(
-                    Offer.newSell(amount = TEN, price = THREE), Offer.newSell(amount = TEN, price = FOUR),
-                    Offer.newBuy(amount = TEN, price = ONE), Offer.newBuy(amount = TEN, price = TWO)
-                )
+                exchange = KRAKEN,
+                sellOffers = listOf(Offer(amount = TEN, price = THREE), Offer(amount = TEN, price = FOUR)),
+                buyOffers = listOf(Offer(amount = TEN, price = TWO), Offer(amount = TEN, price = ONE))
             ),
             OrderBook(
                 COINBASE,
-                listOf(
-                    Offer.newSell(amount = TEN, price = FOUR), Offer.newSell(amount = TEN, price = FIVE),
-                    Offer.newBuy(amount = TEN, price = TWO), Offer.newBuy(amount = TEN, price = THREE)
-                )
+                sellOffers = listOf(Offer(amount = TEN, price = FOUR), Offer(amount = TEN, price = FIVE)),
+                buyOffers = listOf(Offer(amount = TEN, price = THREE), Offer(amount = TEN, price = TWO))
             )
         )
         assertThat(trades, empty())
     }
 
     @Test
-    fun `expect one specific trade`() {
+    fun `expect one arbitrade`() {
         val trades = ArbiTrader().findTrades(
             OrderBook(
                 KRAKEN,
-                listOf(
-                    Offer.newSell(amount = TEN, price = FIVE), Offer.newSell(amount = TEN, price = SIX),
-                    Offer.newBuy(amount = TEN, price = ONE), Offer.newBuy(amount = TEN, price = FOUR)
+                sellOffers = listOf(Offer(amount = TEN, price = FIVE), Offer(amount = TEN, price = SIX)),
+                buyOffers = listOf(Offer(amount = TEN, price = FOUR), Offer(amount = TEN, price = ONE))
+            ),
+            OrderBook(
+                COINBASE,
+                sellOffers = listOf(Offer(amount = FIVE, price = THREE), Offer(amount = TEN, price = FIVE)),
+                buyOffers = listOf(Offer(amount = TEN, price = TWO), Offer(amount = TEN, price = ONE))
+            )
+        )
+
+        assertThat(trades, hasItem(
+            ArbiTrade(
+                BuyTrade(Offer(amount = FIVE, price = THREE), COINBASE),
+                SellTrade(Offer(amount = FIVE, price = FOUR), KRAKEN)
+            )
+        ))
+    }
+
+    @Test
+    fun `expect one arbitrade reversed exchanges`() {
+        val trades = ArbiTrader().findTrades(
+            OrderBook(
+                COINBASE,
+                sellOffers = listOf(Offer(amount = FIVE, price = THREE), Offer(amount = TEN, price = FIVE)),
+                buyOffers = listOf(Offer(amount = TEN, price = TWO), Offer(amount = TEN, price = ONE))
+            ),
+            OrderBook(
+                KRAKEN,
+                sellOffers = listOf(Offer(amount = TEN, price = FIVE), Offer(amount = TEN, price = SIX)),
+                buyOffers = listOf(Offer(amount = TEN, price = FOUR), Offer(amount = TEN, price = ONE))
+            )
+        )
+
+        assertThat(trades, hasItem(
+            ArbiTrade(
+                BuyTrade(Offer(amount = FIVE, price = THREE), COINBASE),
+                SellTrade(Offer(amount = FIVE, price = FOUR), KRAKEN)
+            )
+        ))
+    }
+
+    @Test
+    fun `expect two arbitrades`() {
+        val trades = ArbiTrader().findTrades(
+            OrderBook(
+                KRAKEN,
+                sellOffers = listOf(
+                    Offer(amount = TEN, price = SEVEN),
+                    Offer(amount = TEN, price = TEN)),
+                buyOffers = listOf(
+                    Offer(amount = THREE, price = SIX),
+                    Offer(amount = TWO, price = FIVE),
+                    Offer(amount = FOUR, price = TWO)
                 )
             ),
             OrderBook(
                 COINBASE,
-                listOf(
-                    Offer.newSell(amount = FIVE, price = THREE), Offer.newSell(amount = TEN, price = FIVE),
-                    Offer.newBuy(amount = TEN, price = ONE), Offer.newBuy(amount = TEN, price = TWO)
+                sellOffers = listOf(
+                    Offer(amount = FOUR, price = THREE),
+                    Offer(amount = TEN, price = SIX)),
+                buyOffers = listOf(
+                    Offer(amount = TEN, price = TWO),
+                    Offer(amount = TEN, price = ONE)
                 )
             )
         )
+
         assertThat(trades, hasItems(
-            Trade(Offer.newBuy(amount = FIVE, price = THREE), COINBASE),
-            Trade(Offer.newSell(amount = FIVE, price = FOUR), KRAKEN)
+            ArbiTrade(
+                BuyTrade(Offer(amount = THREE, price = THREE), COINBASE),
+                SellTrade(Offer(amount = THREE, price = SIX), KRAKEN)
+            ),
+            ArbiTrade(
+                BuyTrade(Offer(amount = ONE, price = THREE), COINBASE),
+                SellTrade(Offer(amount = ONE, price = FIVE), KRAKEN)
             )
-        )
+        ))
     }
 }

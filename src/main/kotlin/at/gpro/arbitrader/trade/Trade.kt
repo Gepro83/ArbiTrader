@@ -6,7 +6,7 @@ import mu.KotlinLogging
 
 private val LOG = KotlinLogging.logger {}
 
-class Trade(
+sealed class Trade(
     val offer: Offer,
     val exchange: Exchange
 ) {
@@ -17,5 +17,12 @@ class Trade(
     override fun toString(): String {
         return "Trade(offer=$offer, exchange=$exchange)"
     }
-
 }
+
+class BuyTrade(offer: Offer, exchange: Exchange) : Trade(offer, exchange)
+class SellTrade(offer: Offer, exchange: Exchange) : Trade(offer, exchange)
+
+class ArbiTrade(
+    val buyTrade: BuyTrade,
+    val sellTrade: SellTrade
+)
