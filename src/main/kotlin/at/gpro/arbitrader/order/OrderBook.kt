@@ -3,13 +3,20 @@ package at.gpro.arbitrader.order
 import at.gpro.arbitrader.exchange.Exchange
 import java.math.BigDecimal
 
-data class Offer(
+data class Offer (
     val amount: BigDecimal,
     val price: BigDecimal
 )
 
-class OrderBook(
-    private val exchange: Exchange,
-    private val buyOffers: List<Offer>,
-    private val sellOffers: List<Offer>) {
+data class OrderBook(
+    val exchange: Exchange,
+    val buyOffers: List<Offer>,
+    val sellOffers: List<Offer>
+) {
+    fun asSorted(): OrderBook =
+        OrderBook(
+            exchange,
+            buyOffers.sortedByDescending { it.price },
+            sellOffers.sortedBy { it.price }
+        )
 }

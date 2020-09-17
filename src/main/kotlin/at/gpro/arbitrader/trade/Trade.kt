@@ -7,8 +7,8 @@ import mu.KotlinLogging
 private val LOG = KotlinLogging.logger {}
 
 sealed class Trade(
-    val offer: Offer,
-    val exchange: Exchange
+    open val offer: Offer,
+    open val exchange: Exchange
 ) {
     fun place() {
         LOG.debug { "placing $offer at $exchange" }
@@ -19,10 +19,10 @@ sealed class Trade(
     }
 }
 
-class BuyTrade(offer: Offer, exchange: Exchange) : Trade(offer, exchange)
-class SellTrade(offer: Offer, exchange: Exchange) : Trade(offer, exchange)
+data class BuyTrade(override val offer: Offer, override val exchange: Exchange) : Trade(offer, exchange)
+data class SellTrade(override val offer: Offer, override val exchange: Exchange) : Trade(offer, exchange)
 
-class ArbiTrade(
+data class ArbiTrade(
     val buyTrade: BuyTrade,
     val sellTrade: SellTrade
 )
