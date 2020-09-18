@@ -1,6 +1,6 @@
 package at.gpro.arbitrader
 
-import at.gpro.arbitrader.exchange.Exchange
+import at.gpro.arbitrader.tradecontroller.exchange.Exchange
 import java.math.BigDecimal
 
 val TWO = BigDecimal(2)

@@ -1,14 +1,16 @@
-package at.gpro.arbitrader.trade
+package at.gpro.arbitrader.tradefinder
 
-import at.gpro.arbitrader.exchange.Exchange
-import at.gpro.arbitrader.order.Offer
-import at.gpro.arbitrader.order.OrderBook
+import at.gpro.arbitrader.tradecontroller.BuyOffer
+import at.gpro.arbitrader.tradecontroller.SellOffer
+import at.gpro.arbitrader.tradecontroller.exchange.Exchange
+import at.gpro.arbitrader.tradecontroller.order.Offer
+import at.gpro.arbitrader.tradecontroller.order.OrderBook
 import mu.KotlinLogging
 import java.math.BigDecimal
 
 private val LOG = KotlinLogging.logger {}
 
-class ArbiTrader(orderBook: OrderBook, compareOrderBook: OrderBook) {
+class ArbiTradeFinder(orderBook: OrderBook, compareOrderBook: OrderBook) {
     private val buyExchange: Exchange
     private val sellExchange: Exchange
     private val buyOffers : List<Offer>
@@ -92,10 +94,18 @@ class ArbiTrader(orderBook: OrderBook, compareOrderBook: OrderBook) {
                 }
             }
 
-            arbiTrades.add(ArbiTrade(
-                BuyTrade(Offer(amount, currentSellPrice), sellExchange),
-                SellTrade(Offer(amount, currentBuyPrice), buyExchange)
-            ))
+            arbiTrades.add(
+                ArbiTrade(
+                    BuyOffer(
+                        Offer(amount, currentSellPrice),
+                        sellExchange
+                    ),
+                    SellOffer(
+                        Offer(amount, currentBuyPrice),
+                        buyExchange
+                    )
+                )
+            )
 
             setCurrentPrices()
         }

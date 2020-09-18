@@ -1,16 +1,18 @@
-package at.gpro.arbitrader.trade
+package at.gpro.arbitrader.tradefinder
 
 import at.gpro.arbitrader.*
-import at.gpro.arbitrader.exchange.Exchange
-import at.gpro.arbitrader.order.Offer
-import at.gpro.arbitrader.order.OrderBook
+import at.gpro.arbitrader.tradecontroller.BuyOffer
+import at.gpro.arbitrader.tradecontroller.SellOffer
+import at.gpro.arbitrader.tradecontroller.exchange.Exchange
+import at.gpro.arbitrader.tradecontroller.order.Offer
+import at.gpro.arbitrader.tradecontroller.order.OrderBook
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal.ONE
 import java.math.BigDecimal.TEN
 
-internal class ArbiTraderTest {
+internal class ArbiTradeFinderTest {
 
     companion object {
 
@@ -24,7 +26,7 @@ internal class ArbiTraderTest {
 
     @Test
     fun `no arbitrage with some orders`() {
-        val trades = ArbiTrader(
+        val trades = ArbiTradeFinder(
             OrderBook(
                 exchange = KRAKEN,
                 sellOffers = listOf(Offer(amount = TEN, price = THREE), Offer(amount = TEN, price = FOUR)),
@@ -41,7 +43,7 @@ internal class ArbiTraderTest {
 
     @Test
     fun `expect one arbitrade`() {
-        val trades = ArbiTrader(
+        val trades = ArbiTradeFinder(
             OrderBook(
                 KRAKEN,
                 sellOffers = listOf(Offer(amount = TEN, price = FIVE), Offer(amount = TEN, price = SIX)),
@@ -56,15 +58,21 @@ internal class ArbiTraderTest {
 
         assertThat(trades, hasItem(
             ArbiTrade(
-                BuyTrade(Offer(amount = FIVE, price = THREE), COINBASE),
-                SellTrade(Offer(amount = FIVE, price = FOUR), KRAKEN)
+                BuyOffer(
+                    Offer(amount = FIVE, price = THREE),
+                    COINBASE
+                ),
+                SellOffer(
+                    Offer(amount = FIVE, price = FOUR),
+                    KRAKEN
+                )
             )
         ))
     }
 
     @Test
     fun `expect one arbitrade with repeated calls to findTrades`() {
-        val arbiTrader = ArbiTrader(
+        val arbiTrader = ArbiTradeFinder(
             OrderBook(
                 KRAKEN,
                 sellOffers = listOf(Offer(amount = TEN, price = FIVE), Offer(amount = TEN, price = SIX)),
@@ -83,15 +91,21 @@ internal class ArbiTraderTest {
 
         assertThat(trades, hasItem(
             ArbiTrade(
-                BuyTrade(Offer(amount = FIVE, price = THREE), COINBASE),
-                SellTrade(Offer(amount = FIVE, price = FOUR), KRAKEN)
+                BuyOffer(
+                    Offer(amount = FIVE, price = THREE),
+                    COINBASE
+                ),
+                SellOffer(
+                    Offer(amount = FIVE, price = FOUR),
+                    KRAKEN
+                )
             )
         ))
     }
 
     @Test
     fun `expect one arbitrade reversed orderbooks`() {
-        val trades = ArbiTrader(
+        val trades = ArbiTradeFinder(
             OrderBook(
                 COINBASE,
                 sellOffers = listOf(Offer(amount = FIVE, price = THREE), Offer(amount = TEN, price = FIVE)),
@@ -106,15 +120,21 @@ internal class ArbiTraderTest {
 
         assertThat(trades, hasItem(
             ArbiTrade(
-                BuyTrade(Offer(amount = FIVE, price = THREE), COINBASE),
-                SellTrade(Offer(amount = FIVE, price = FOUR), KRAKEN)
+                BuyOffer(
+                    Offer(amount = FIVE, price = THREE),
+                    COINBASE
+                ),
+                SellOffer(
+                    Offer(amount = FIVE, price = FOUR),
+                    KRAKEN
+                )
             )
         ))
     }
 
     @Test
     fun `expect two arbitrades filling two buy offers and one sell offer without remainder`() {
-        val trades = ArbiTrader(
+        val trades = ArbiTradeFinder(
             OrderBook(
                 KRAKEN,
                 sellOffers = listOf(
@@ -140,19 +160,31 @@ internal class ArbiTraderTest {
 
         assertThat(trades, hasItems(
             ArbiTrade(
-                BuyTrade(Offer(amount = THREE, price = THREE), COINBASE),
-                SellTrade(Offer(amount = THREE, price = SIX), KRAKEN)
+                BuyOffer(
+                    Offer(amount = THREE, price = THREE),
+                    COINBASE
+                ),
+                SellOffer(
+                    Offer(amount = THREE, price = SIX),
+                    KRAKEN
+                )
             ),
             ArbiTrade(
-                BuyTrade(Offer(amount = ONE, price = THREE), COINBASE),
-                SellTrade(Offer(amount = ONE, price = FIVE), KRAKEN)
+                BuyOffer(
+                    Offer(amount = ONE, price = THREE),
+                    COINBASE
+                ),
+                SellOffer(
+                    Offer(amount = ONE, price = FIVE),
+                    KRAKEN
+                )
             )
         ))
     }
 
     @Test
     fun `expect three arbitrades filling two buy offers and two sell offer with remainder`() {
-        val trades = ArbiTrader(
+        val trades = ArbiTradeFinder(
             OrderBook(
                 KRAKEN,
                 sellOffers = listOf(
@@ -178,23 +210,41 @@ internal class ArbiTraderTest {
 
         assertThat(trades, hasItems(
             ArbiTrade(
-                BuyTrade(Offer(amount = THREE, price = THREE), COINBASE),
-                SellTrade(Offer(amount = THREE, price = SIX), KRAKEN)
+                BuyOffer(
+                    Offer(amount = THREE, price = THREE),
+                    COINBASE
+                ),
+                SellOffer(
+                    Offer(amount = THREE, price = SIX),
+                    KRAKEN
+                )
             ),
             ArbiTrade(
-                BuyTrade(Offer(amount = ONE, price = THREE), COINBASE),
-                SellTrade(Offer(amount = ONE, price = FIVE), KRAKEN)
+                BuyOffer(
+                    Offer(amount = ONE, price = THREE),
+                    COINBASE
+                ),
+                SellOffer(
+                    Offer(amount = ONE, price = FIVE),
+                    KRAKEN
+                )
             ),
             ArbiTrade(
-                BuyTrade(Offer(amount = ONE, price = FOUR), COINBASE),
-                SellTrade(Offer(amount = ONE, price = FIVE), KRAKEN)
+                BuyOffer(
+                    Offer(amount = ONE, price = FOUR),
+                    COINBASE
+                ),
+                SellOffer(
+                    Offer(amount = ONE, price = FIVE),
+                    KRAKEN
+                )
             )
         ))
     }
 
     @Test
     internal fun `empty Orderbooks expect empty trades`() {
-        val trades = ArbiTrader(
+        val trades = ArbiTradeFinder(
             OrderBook(COINBASE, emptyList(), emptyList()),
             OrderBook(KRAKEN, emptyList(), emptyList())
         ).findTrades()
@@ -204,7 +254,7 @@ internal class ArbiTraderTest {
 
     @Test
     internal fun `unsorted orderbooks with one arbitrade`() {
-        val trades = ArbiTrader(
+        val trades = ArbiTradeFinder(
             OrderBook(
                 KRAKEN,
                 sellOffers = listOf(
@@ -233,15 +283,21 @@ internal class ArbiTraderTest {
 
         assertThat(trades, hasItem(
             ArbiTrade(
-                BuyTrade(Offer(amount = FIVE, price = THREE), COINBASE),
-                SellTrade(Offer(amount = FIVE, price = FOUR), KRAKEN)
+                BuyOffer(
+                    Offer(amount = FIVE, price = THREE),
+                    COINBASE
+                ),
+                SellOffer(
+                    Offer(amount = FIVE, price = FOUR),
+                    KRAKEN
+                )
             )
         ))
     }
 
     @Test
     internal fun `unsorted orderbooks with one arbitrade reversed orderbookorder`() {
-        val trades = ArbiTrader(
+        val trades = ArbiTradeFinder(
             OrderBook(
                 COINBASE,
                 sellOffers = listOf(
@@ -270,8 +326,14 @@ internal class ArbiTraderTest {
 
         assertThat(trades, hasItem(
             ArbiTrade(
-                BuyTrade(Offer(amount = FIVE, price = THREE), COINBASE),
-                SellTrade(Offer(amount = FIVE, price = FOUR), KRAKEN)
+                BuyOffer(
+                    Offer(amount = FIVE, price = THREE),
+                    COINBASE
+                ),
+                SellOffer(
+                    Offer(amount = FIVE, price = FOUR),
+                    KRAKEN
+                )
             )
         ))
     }
