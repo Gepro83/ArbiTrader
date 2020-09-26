@@ -22,45 +22,17 @@ internal class OrderBookConverterTest {
 
     companion object {
         val TEST_EXCHANGE = object : SdkExchange {
-            override fun getAccountService(): AccountService {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
+            override fun getAccountService(): AccountService? = null
             override fun getExchangeSpecification(): ExchangeSpecification =
                 ExchangeSpecification("test exchange").apply { exchangeName = "test exchange" }
-
-            override fun getExchangeMetaData(): ExchangeMetaData {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun remoteInit() {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun getExchangeSymbols(): MutableList<CurrencyPair> {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun getDefaultExchangeSpecification(): ExchangeSpecification {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun getTradeService(): TradeService {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun getMarketDataService(): MarketDataService {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun getNonceFactory(): SynchronizedValueFactory<Long> {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun applySpecification(exchangeSpecification: ExchangeSpecification?) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
+            override fun getExchangeMetaData(): ExchangeMetaData? = null
+            override fun remoteInit() {}
+            override fun getExchangeSymbols(): MutableList<CurrencyPair> = ArrayList()
+            override fun getDefaultExchangeSpecification(): ExchangeSpecification? = null
+            override fun getTradeService(): TradeService? = null
+            override fun getMarketDataService(): MarketDataService? = null
+            override fun getNonceFactory(): SynchronizedValueFactory<Long>? = null
+            override fun applySpecification(exchangeSpecification: ExchangeSpecification?) {}
         }
     }
 
