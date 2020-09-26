@@ -1,6 +1,6 @@
-package at.gpro.arbitrader.tradecontroller.order
+package at.gpro.arbitrader.entity.order
 
-import at.gpro.arbitrader.tradecontroller.exchange.Exchange
+import at.gpro.arbitrader.entity.Exchange
 import java.math.BigDecimal
 
 data class Offer (

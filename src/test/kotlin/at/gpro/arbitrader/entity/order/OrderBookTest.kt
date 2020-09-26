@@ -1,4 +1,4 @@
-package at.gpro.arbitrader.tradecontroller.order
+package at.gpro.arbitrader.entity.order
 
 import at.gpro.arbitrader.*
 import org.hamcrest.MatcherAssert.assertThat

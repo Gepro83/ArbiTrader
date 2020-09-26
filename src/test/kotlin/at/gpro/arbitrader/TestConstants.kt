@@ -1,6 +1,6 @@
 package at.gpro.arbitrader
 
-import at.gpro.arbitrader.tradecontroller.exchange.Exchange
+import at.gpro.arbitrader.entity.Exchange
 import java.math.BigDecimal
 
 val TWO = BigDecimal(2)
@@ -11,5 +11,6 @@ val SIX = BigDecimal(6)
 val SEVEN = BigDecimal(7)
 
 val TESTEXCHANGE = object : Exchange {
+    override fun getName(): String = "TestExchange"
     override fun toString(): String = "TestExchange"
 }

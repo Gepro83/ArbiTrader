@@ -1,7 +1,6 @@
-package at.gpro.arbitrader.tradecontroller
+package at.gpro.arbitrader.entity
 
-import at.gpro.arbitrader.tradecontroller.exchange.Exchange
-import at.gpro.arbitrader.tradecontroller.order.Offer
+import at.gpro.arbitrader.entity.order.Offer
 import mu.KotlinLogging
 
 private val LOG = KotlinLogging.logger {}
@@ -10,9 +9,8 @@ sealed class ExchangeOffer(
     open val offer: Offer,
     open val exchange: Exchange
 ) {
-
     override fun toString(): String {
-        return "Trade(offer=$offer, exchange=$exchange)"
+        return "ExchangeOffer(offer=$offer, exchange=$exchange)"
     }
 }
 

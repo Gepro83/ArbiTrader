@@ -1,4 +1,4 @@
-package at.gpro.arbitrader.tradecontroller
+package at.gpro.arbitrader.entity
 
 abstract class Trade(
     val buyOffers : List<BuyOffer>,

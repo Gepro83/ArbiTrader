@@ -1,11 +1,11 @@
-package at.gpro.arbitrader.tradefinder
+package at.gpro.arbitrader.find
 
 import at.gpro.arbitrader.*
-import at.gpro.arbitrader.tradecontroller.BuyOffer
-import at.gpro.arbitrader.tradecontroller.SellOffer
-import at.gpro.arbitrader.tradecontroller.exchange.Exchange
-import at.gpro.arbitrader.tradecontroller.order.Offer
-import at.gpro.arbitrader.tradecontroller.order.OrderBook
+import at.gpro.arbitrader.entity.BuyOffer
+import at.gpro.arbitrader.entity.Exchange
+import at.gpro.arbitrader.entity.SellOffer
+import at.gpro.arbitrader.entity.order.Offer
+import at.gpro.arbitrader.entity.order.OrderBook
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
 import org.junit.jupiter.api.Test
@@ -17,9 +17,11 @@ internal class ArbiTradeFinderTest {
     companion object {
 
         val KRAKEN = object : Exchange {
+            override fun getName(): String = toString()
             override fun toString(): String = "Kraken"
         }
         val COINBASE = object : Exchange {
+            override fun getName(): String = toString()
             override fun toString(): String = "Coinbase"
         }
     }
