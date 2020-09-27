@@ -10,7 +10,7 @@ import java.time.Duration
 
 class OrderBookStore(private val clock: Clock = SystemClock()) {
     companion object {
-        private val ORDERBOOK_RETENTION_DURATION = Duration.ofMillis(100)
+        private val ORDERBOOK_RETENTION_DURATION = Duration.ofMillis(500)
     }
     private val exchangeMap : MutableMap<Exchange, MutableMap<CurrencyPair, OrderBook>> = HashMap()
     private val timerMap: MutableMap<OrderBook, Timer> = HashMap()
