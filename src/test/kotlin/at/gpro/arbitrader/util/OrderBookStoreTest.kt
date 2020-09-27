@@ -1,4 +1,4 @@
-package at.gpro.arbitrader.xchange
+package at.gpro.arbitrader.util
 
 import at.gpro.arbitrader.ANOTHER_EMPTY_TEST_EXCHANGE
 import at.gpro.arbitrader.EMPTY_TEST_EXCHANGE
@@ -8,7 +8,6 @@ import at.gpro.arbitrader.entity.order.OrderBook
 import at.gpro.arbitrader.util.time.ManualClock
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
-
 import org.junit.jupiter.api.Test
 
 internal class OrderBookStoreTest {

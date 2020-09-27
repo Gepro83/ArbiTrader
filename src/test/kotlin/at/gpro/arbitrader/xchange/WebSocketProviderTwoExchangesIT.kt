@@ -6,9 +6,6 @@ import at.gpro.arbitrader.entity.CurrencyPair
 import at.gpro.arbitrader.xchange.utils.XchangePair
 import info.bitrich.xchangestream.coinbasepro.CoinbaseProStreamingExchange
 import info.bitrich.xchangestream.kraken.KrakenStreamingExchange
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
 import mu.KotlinLogging
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.empty
@@ -16,7 +13,6 @@ import org.hamcrest.Matchers.not
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
-import org.knowm.xchange.service.marketdata.MarketDataService
 import java.lang.Thread.sleep
 
 private val LOG = KotlinLogging.logger {}
@@ -48,38 +44,15 @@ internal class WebSocketProviderTwoExchangesIT {
     }
 
     @Test
-    fun `getOrderbooks BTC_EUR every 50ms for 300ms seconds`() {
-        val startMillis = System.currentTimeMillis()
-        while(System.currentTimeMillis() - startMillis < 300) {
-            LOG.info { "got orderbooks: ${TEST_PROVIDER.getOrderBooks(CurrencyPair.BTC_EUR)}" }
-            sleep(50)
-        }
-    }
-
-    @Test
-    fun `getOrderbooks ETH_EUR must not be empty after 500ms`() {
-        sleep(500)
+    fun `getOrderbooks ETH_EUR must not be empty after 1000ms`() {
+        sleep(1000)
         assertThat(TEST_PROVIDER.getOrderBooks(CurrencyPair.ETH_EUR), not(empty()))
     }
 
     @Test
-    fun `instantiate calls getOrderBook on streamingMarketDataService for all pairs`() {
-        val marketDataServiceMock = mockk<MarketDataService>(relaxed = true)
-        val exchangeMock = mockk<WebSocketExchange>(relaxed = true) {
-            every {
-                supportedPairs
-            } returns listOf(CurrencyPair.ETH_EUR, CurrencyPair.BTC_EUR, CurrencyPair.XRP_EUR)
-            every {
-                marketDataService
-            } returns marketDataServiceMock
-
-        }
-        WebSocketProvider(listOf(exchangeMock))
-
-        verify {
-            marketDataServiceMock.getOrderBook(XchangePair.ETH_EUR)
-            marketDataServiceMock.getOrderBook(XchangePair.BTC_EUR)
-            marketDataServiceMock.getOrderBook(XchangePair.XRP_EUR)
-        }
+    fun `getOrderbooks BTC_EUR must not be empty after 1000ms`() {
+        sleep(1000)
+        assertThat(TEST_PROVIDER.getOrderBooks(CurrencyPair.BTC_EUR), not(empty()))
     }
+
 }

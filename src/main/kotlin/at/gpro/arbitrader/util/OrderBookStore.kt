@@ -1,4 +1,4 @@
-package at.gpro.arbitrader.xchange
+package at.gpro.arbitrader.util
 
 import at.gpro.arbitrader.entity.CurrencyPair
 import at.gpro.arbitrader.entity.Exchange
