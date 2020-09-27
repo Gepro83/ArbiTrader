@@ -12,12 +12,18 @@ val FIVE = BigDecimal(5)
 val SIX = BigDecimal(6)
 val SEVEN = BigDecimal(7)
 
-val TESTEXCHANGE = object : Exchange {
+val EMPTY_TEST_EXCHANGE = object : Exchange {
     override fun getName(): String = "TestExchange"
     override fun toString(): String = "TestExchange"
+}
+
+val ANOTHER_EMPTY_TEST_EXCHANGE = object : Exchange {
+    override fun getName(): String = "AnotherTestExchange"
+    override fun toString(): String = "AnortherTestExchange"
 }
 
 val API_KEY_STORE = ApiKeyStore.from(File("/Users/gprohaska/Documents/crypto/ApiKeys.json"))
 
 val COINBASEPRO_KEY = API_KEY_STORE?.getKey("CoinbasePro") ?: throw Exception("Could not find CoinbasePro key")
 val KRAKEN_KEY = API_KEY_STORE?.getKey("Kraken") ?: throw Exception("Could not find Kraken key")
+

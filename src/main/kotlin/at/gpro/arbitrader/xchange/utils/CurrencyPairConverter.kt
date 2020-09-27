@@ -11,5 +11,13 @@ class CurrencyPairConverter {
         else -> throw IllegalArgumentException("No internal pair existing for : $pair")
     }
 
-    fun convert(pairs: List<XchangePair>) = pairs.map { convert(it) }
+    fun convert(pair: CurrencyPair) = when(pair) {
+        CurrencyPair.BTC_EUR -> XchangePair.BTC_EUR
+        CurrencyPair.BCH_EUR -> XchangePair.BCH_EUR
+        CurrencyPair.ETH_EUR -> XchangePair.ETH_EUR
+        CurrencyPair.XRP_EUR -> XchangePair.XRP_EUR
+    }
+
+    fun convertToCurrencyPair(pairs: List<XchangePair>) = pairs.map { convert(it) }
+    fun convertToXchangePair(pairs: List<CurrencyPair>) = pairs.map { convert(it) }
 }

@@ -15,7 +15,7 @@ internal class OrderBookTest {
 
         assertThat(
             OrderBook(
-                TESTEXCHANGE,
+                EMPTY_TEST_EXCHANGE,
                 sellOffers = listOf(
                     Offer(amount = TEN, price = SIX),
                     Offer(amount = FIVE, price = TEN),
@@ -28,7 +28,7 @@ internal class OrderBookTest {
             ).asSorted(),
             `is` (equalTo(
                 OrderBook(
-                    TESTEXCHANGE,
+                    EMPTY_TEST_EXCHANGE,
                     sellOffers = listOf(
                         Offer(amount = TEN, price = FIVE),
                         Offer(amount = TEN, price = SIX),

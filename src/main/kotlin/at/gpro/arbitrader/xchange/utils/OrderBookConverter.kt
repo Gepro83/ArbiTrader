@@ -1,12 +1,13 @@
 package at.gpro.arbitrader.xchange.utils
 
+import at.gpro.arbitrader.entity.Exchange
 import at.gpro.arbitrader.entity.order.Offer
 import at.gpro.arbitrader.entity.order.OrderBook
 import org.knowm.xchange.dto.trade.LimitOrder
 
 class OrderBookConverter {
-    fun convert(orderBook: XchangeOrderBook, exchange: XchangeExchange) : OrderBook {
-        return OrderBook(exchange = ExchangeConverter().convert(exchange),
+    fun convert(orderBook: XchangeOrderBook, exchange: Exchange) : OrderBook {
+        return OrderBook(exchange = exchange,
             sellOffers = getSellOffers(orderBook),
             buyOffers = getBuyOffers(orderBook)
         )

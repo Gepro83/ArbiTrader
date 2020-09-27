@@ -66,7 +66,7 @@ class WebSocketExchangeBuilder {
 
             return WebSocketExchange(
                 xchange,
-                CurrencyPairConverter().convert(currenctPairs)
+                CurrencyPairConverter().convertToCurrencyPair(currenctPairs)
             )
         }
 

@@ -6,7 +6,9 @@ import java.math.BigDecimal
 data class Offer (
     val amount: BigDecimal,
     val price: BigDecimal
-)
+) {
+    constructor(amount: Int, price: Int) : this(BigDecimal(amount), BigDecimal(price))
+}
 
 data class OrderBook(
     val exchange: Exchange,
