@@ -18,15 +18,16 @@ class TradeController(
     }
 
     private fun runMainLoop() {
-        val orderBooks = updateProvider.getOrderBooks()
+        TODO("needs testing for different currencypairs")
+//        val orderBooks = updateProvider.getOrderBooks()
 
-        val trades = tradeFinder.findTrades(orderBooks)
-
-        val selectedTrades = tradeSelector.selectTrades(trades)
-
-        if (selectedTrades.isNotEmpty()) {
-            LOG.debug { "${selectedTrades.size} trades found. executing..." }
-            tradeExecutor.executeTrades(selectedTrades)
-        }
+//        val trades = tradeFinder.findTrades(orderBooks)
+//
+//        val selectedTrades = tradeSelector.selectTrades(trades)
+//
+//        if (selectedTrades.isNotEmpty()) {
+//            LOG.debug { "${selectedTrades.size} trades found. executing..." }
+//            tradeExecutor.executeTrades(selectedTrades)
+//        }
     }
 }

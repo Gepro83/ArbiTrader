@@ -18,7 +18,7 @@ internal class WebSocketProviderIT {
         WebSocketExchangeBuilder.buildAndConnectFrom(
             CoinbaseProStreamingExchange::class.java,
             COINBASEPRO_KEY,
-            listOf(CurrencyPair.BTC_USD)
+            listOf(CurrencyPair.ETH_EUR)
         ) ?: fail("Could not build Coinbase exchange")
 
     private val KRAKEN =
@@ -36,10 +36,10 @@ internal class WebSocketProviderIT {
             )
         )
 
-        val startMillis = System.currentTimeMillis()
-        while(System.currentTimeMillis() - startMillis < 5000) {
-            LOG.info { "got orderbooks: ${provider.getOrderBooks()}" }
-            Thread.sleep(50)
-        }
+//        val startMillis = System.currentTimeMillis()
+//        while(System.currentTimeMillis() - startMillis < 5000) {
+//            LOG.info { "got orderbooks: ${provider.getOrderBooks()}" }
+//            Thread.sleep(50)
+//        }
     }
 }

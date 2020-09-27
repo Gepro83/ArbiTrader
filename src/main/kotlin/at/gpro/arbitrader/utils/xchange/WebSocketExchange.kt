@@ -1,14 +1,15 @@
 package at.gpro.arbitrader.utils.xchange
 
+import at.gpro.arbitrader.entity.CurrencyPair
 import at.gpro.arbitrader.entity.Exchange
 import at.gpro.arbitrader.security.model.ApiKey
+import at.gpro.arbitrader.update.XchangePair
 import info.bitrich.xchangestream.core.ProductSubscription
 import info.bitrich.xchangestream.core.StreamingExchange
 import info.bitrich.xchangestream.core.StreamingExchangeFactory
 import info.bitrich.xchangestream.core.StreamingMarketDataService
 import io.reactivex.Completable
 import org.knowm.xchange.ExchangeSpecification
-import org.knowm.xchange.currency.CurrencyPair
 import org.knowm.xchange.dto.meta.ExchangeMetaData
 import org.knowm.xchange.service.account.AccountService
 import org.knowm.xchange.service.marketdata.MarketDataService
@@ -16,7 +17,8 @@ import org.knowm.xchange.service.trade.TradeService
 import si.mazi.rescu.SynchronizedValueFactory
 
 class WebSocketExchange(
-    private val xchange: StreamingExchange
+    private val xchange: StreamingExchange,
+    val supportedPairs: List<CurrencyPair>
 ) : StreamingExchange, Exchange {
     override fun isAlive(): Boolean = xchange.isAlive
     override fun connect(vararg args: ProductSubscription): Completable = xchange.connect(*args)
@@ -26,7 +28,7 @@ class WebSocketExchange(
     override fun disconnect(): Completable = xchange.disconnect()
     override fun getExchangeSpecification(): ExchangeSpecification = xchange.exchangeSpecification
     override fun remoteInit() = xchange.remoteInit()
-    override fun getExchangeSymbols(): MutableList<CurrencyPair> = xchange.exchangeSymbols
+    override fun getExchangeSymbols(): MutableList<XchangePair> = xchange.exchangeSymbols
     override fun getDefaultExchangeSpecification(): ExchangeSpecification = xchange.defaultExchangeSpecification
     override fun getTradeService(): TradeService = xchange.tradeService
     override fun getMarketDataService(): MarketDataService = xchange.marketDataService
@@ -41,7 +43,7 @@ class WebSocketExchangeBuilder {
         fun <T> buildAndConnectFrom(
             exchangeClass : Class<T>,
             key: ApiKey,
-            currenctPairs : List<CurrencyPair>
+            currenctPairs : List<XchangePair>
         ) : WebSocketExchange? {
             val productSubscription = buildProductSubscription(currenctPairs)
             val specification  = buildSpecification(exchangeClass, key)
@@ -49,7 +51,7 @@ class WebSocketExchangeBuilder {
             val xchange = StreamingExchangeFactory.INSTANCE.createExchange(specification)
                 .apply { connect(productSubscription).blockingAwait() }
 
-            return WebSocketExchange(xchange)
+            return WebSocketExchange(xchange, CurrencyPairConverter().convert(currenctPairs))
         }
 
         private fun buildSpecification(exchangeClass: Class<*>, key: ApiKey) =
@@ -70,7 +72,7 @@ class WebSocketExchangeBuilder {
             return this
         }
 
-        private fun buildProductSubscription(currenctPairs: List<CurrencyPair>) =
+        private fun buildProductSubscription(currenctPairs: List<XchangePair>) =
             ProductSubscription
                 .create()
                 .apply {

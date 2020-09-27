@@ -1,7 +1,8 @@
 package at.gpro.arbitrader.control
 
+import at.gpro.arbitrader.entity.CurrencyPair
 import at.gpro.arbitrader.entity.order.OrderBook
 
 interface UpdateProvider {
-    fun getOrderBooks() : List<OrderBook>
+    fun getOrderBooks(currencyPair: CurrencyPair) : List<OrderBook>
 }
