@@ -3,17 +3,16 @@ package at.gpro.arbitrader.update
 import at.gpro.arbitrader.control.UpdateProvider
 import at.gpro.arbitrader.entity.CurrencyPair
 import at.gpro.arbitrader.entity.order.OrderBook
-import at.gpro.arbitrader.utils.xchange.WebSocketExchange
+import at.gpro.arbitrader.xchange.WebSocketExchange
+import at.gpro.arbitrader.xchange.utils.OrderBookConverter
+import at.gpro.arbitrader.xchange.utils.XchangeOrderBook
+import at.gpro.arbitrader.xchange.utils.XchangePair
 import info.bitrich.xchangestream.core.StreamingExchange
 import io.reactivex.disposables.Disposable
 import mu.KotlinLogging
 import java.util.concurrent.ConcurrentHashMap
 
 private val LOG = KotlinLogging.logger {}
-
-typealias XchangeOrderBook = org.knowm.xchange.dto.marketdata.OrderBook?
-typealias XchangeExchange = org.knowm.xchange.Exchange
-typealias XchangePair = org.knowm.xchange.currency.CurrencyPair
 
 class WebSocketProvider(private val exchanges : List<WebSocketExchange>) : UpdateProvider {
 

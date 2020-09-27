@@ -1,9 +1,10 @@
-package at.gpro.arbitrader.utils.xchange
+package at.gpro.arbitrader.xchange
 
 import at.gpro.arbitrader.entity.CurrencyPair
 import at.gpro.arbitrader.entity.Exchange
 import at.gpro.arbitrader.security.model.ApiKey
-import at.gpro.arbitrader.update.XchangePair
+import at.gpro.arbitrader.xchange.utils.CurrencyPairConverter
+import at.gpro.arbitrader.xchange.utils.XchangePair
 import info.bitrich.xchangestream.core.ProductSubscription
 import info.bitrich.xchangestream.core.StreamingExchange
 import info.bitrich.xchangestream.core.StreamingExchangeFactory
@@ -36,6 +37,7 @@ class WebSocketExchange(
     override fun applySpecification(specification: ExchangeSpecification) = xchange.applySpecification(specification)
     override fun useCompressedMessages(compressedMessages: Boolean) = xchange.useCompressedMessages(compressedMessages)
     override fun getName(): String = xchange.defaultExchangeSpecification.exchangeName
+    override fun toString(): String = getName()
 }
 
 class WebSocketExchangeBuilder {
@@ -45,13 +47,23 @@ class WebSocketExchangeBuilder {
             key: ApiKey,
             currenctPairs : List<XchangePair>
         ) : WebSocketExchange? {
-            val productSubscription = buildProductSubscription(currenctPairs)
-            val specification  = buildSpecification(exchangeClass, key)
+            val productSubscription =
+                buildProductSubscription(
+                    currenctPairs
+                )
+            val specification  =
+                buildSpecification(
+                    exchangeClass,
+                    key
+                )
 
             val xchange = StreamingExchangeFactory.INSTANCE.createExchange(specification)
                 .apply { connect(productSubscription).blockingAwait() }
 
-            return WebSocketExchange(xchange, CurrencyPairConverter().convert(currenctPairs))
+            return WebSocketExchange(
+                xchange,
+                CurrencyPairConverter().convert(currenctPairs)
+            )
         }
 
         private fun buildSpecification(exchangeClass: Class<*>, key: ApiKey) =

@@ -1,7 +1,6 @@
-package at.gpro.arbitrader.utils.xchange
+package at.gpro.arbitrader.xchange.utils
 
 import at.gpro.arbitrader.entity.CurrencyPair
-import at.gpro.arbitrader.update.XchangePair
 
 class CurrencyPairConverter {
     fun convert(pair: XchangePair) = when(pair) {
