@@ -4,6 +4,7 @@ import at.gpro.arbitrader.entity.CurrencyPair
 import at.gpro.arbitrader.entity.Exchange
 import at.gpro.arbitrader.security.model.ApiKey
 import at.gpro.arbitrader.xchange.utils.CurrencyPairConverter
+import at.gpro.arbitrader.xchange.utils.ExchangeConverter
 import at.gpro.arbitrader.xchange.utils.XchangePair
 import info.bitrich.xchangestream.core.ProductSubscription
 import info.bitrich.xchangestream.core.StreamingExchange
@@ -21,6 +22,9 @@ class WebSocketExchange(
     private val xchange: StreamingExchange,
     val supportedPairs: List<CurrencyPair>
 ) : StreamingExchange, Exchange {
+
+    private val exchange = ExchangeConverter().convert(xchange)
+
     override fun isAlive(): Boolean = xchange.isAlive
     override fun connect(vararg args: ProductSubscription): Completable = xchange.connect(*args)
     override fun getExchangeMetaData(): ExchangeMetaData  = xchange.exchangeMetaData
@@ -36,7 +40,7 @@ class WebSocketExchange(
     override fun getNonceFactory(): SynchronizedValueFactory<Long> = xchange.nonceFactory
     override fun applySpecification(specification: ExchangeSpecification) = xchange.applySpecification(specification)
     override fun useCompressedMessages(compressedMessages: Boolean) = xchange.useCompressedMessages(compressedMessages)
-    override fun getName(): String = xchange.defaultExchangeSpecification.exchangeName
+    override fun getName(): String = exchange.getName()
     override fun toString(): String = getName()
 }
 

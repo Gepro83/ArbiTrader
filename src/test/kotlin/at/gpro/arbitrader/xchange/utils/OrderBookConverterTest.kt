@@ -1,9 +1,6 @@
-package at.gpro.arbitrader.update
+package at.gpro.arbitrader.xchange.utils
 
 import at.gpro.arbitrader.entity.order.Offer
-import at.gpro.arbitrader.xchange.utils.OrderBookConverter
-import at.gpro.arbitrader.xchange.utils.XchangeExchange
-import at.gpro.arbitrader.xchange.utils.XchangeOrderBook
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
 
@@ -48,7 +45,8 @@ internal class OrderBookConverterTest {
                     Date(),
                     emptyList(),
                     emptyList()
-                ), TEST_EXCHANGE)
+                ), TEST_EXCHANGE
+            )
         assertThat(convertedBook.buyOffers, empty())
         assertThat(convertedBook.sellOffers, empty())
         assertThat(convertedBook.exchange.getName(), `is`(TEST_EXCHANGE.exchangeSpecification.exchangeName))

@@ -1,9 +1,8 @@
-package at.gpro.arbitrader.update
+package at.gpro.arbitrader.xchange
 
 import at.gpro.arbitrader.control.UpdateProvider
 import at.gpro.arbitrader.entity.CurrencyPair
 import at.gpro.arbitrader.entity.order.OrderBook
-import at.gpro.arbitrader.xchange.WebSocketExchange
 import at.gpro.arbitrader.xchange.utils.OrderBookConverter
 import at.gpro.arbitrader.xchange.utils.XchangeOrderBook
 import at.gpro.arbitrader.xchange.utils.XchangePair

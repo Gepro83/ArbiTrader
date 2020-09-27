@@ -1,8 +1,8 @@
-package at.gpro.arbitrader.xchange.utils
+package at.gpro.arbitrader.xchange
 
 import at.gpro.arbitrader.COINBASEPRO_KEY
 import at.gpro.arbitrader.entity.CurrencyPair
-import at.gpro.arbitrader.xchange.WebSocketExchangeBuilder
+import at.gpro.arbitrader.xchange.utils.XchangePair
 import info.bitrich.xchangestream.coinbasepro.CoinbaseProStreamingExchange
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
