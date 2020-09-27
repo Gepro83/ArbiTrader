@@ -56,26 +56,26 @@ internal class OrderBookStoreTest {
             )
         )
 
-        val anotherTestOrderBook = OrderBook(
+        val otherExchangeOrderBook = OrderBook(
             ANOTHER_EMPTY_TEST_EXCHANGE,
             listOf(
                 Offer(1, 12),
-                Offer(2, 14)
+                Offer(2, 15)
             ),
             listOf(
-                Offer(3, 5),
-                Offer(1, 3)
+                Offer(2, 5),
+                Offer(5, 1)
             )
         )
 
         orderBookStore.update(testOrderBook, CurrencyPair.XRP_EUR)
-        orderBookStore.update(anotherTestOrderBook, CurrencyPair.XRP_EUR)
+        orderBookStore.update(otherExchangeOrderBook, CurrencyPair.XRP_EUR)
 
-        assertThat(orderBookStore.getBooksFor(CurrencyPair.XRP_EUR), containsInAnyOrder(testOrderBook, anotherTestOrderBook))
+        assertThat(orderBookStore.getBooksFor(CurrencyPair.XRP_EUR), containsInAnyOrder(testOrderBook, otherExchangeOrderBook))
     }
 
     @Test
-    internal fun `getBooksFor returns only orderbook for given currency`() {
+    internal fun `getBooksFor returns only orderbook for given currency single exchange`() {
         val testOrderBook = OrderBook(
             EMPTY_TEST_EXCHANGE,
             listOf(
@@ -92,8 +92,44 @@ internal class OrderBookStoreTest {
 
         val updatedOrderBook = testOrderBook.copy(buyOffers = listOf(Offer(4, 15)))
 
-        orderBookStore.update(testOrderBook, CurrencyPair.BTC_EUR)
+        orderBookStore.update(updatedOrderBook, CurrencyPair.BTC_EUR)
 
         assertThat(orderBookStore.getBooksFor(CurrencyPair.BTC_EUR), contains(updatedOrderBook))
+    }
+
+    @Test
+    internal fun `getBooksFor returns latest orderbook with two exchanges and updates of multiple currencies`() {
+        val testOrderBook = OrderBook(
+            EMPTY_TEST_EXCHANGE,
+            listOf(
+                Offer(1, 12),
+                Offer(2, 14)
+            ),
+            listOf(
+                Offer(2, 5),
+                Offer(1, 3)
+            )
+        )
+
+        val otherExchangeOrderBook = OrderBook(
+            ANOTHER_EMPTY_TEST_EXCHANGE,
+            listOf(
+                Offer(1, 12),
+                Offer(2, 17)
+            ),
+            listOf(
+                Offer(5, 6),
+                Offer(2, 2)
+            )
+        )
+
+        orderBookStore.update(testOrderBook, CurrencyPair.XRP_EUR)
+        orderBookStore.update(otherExchangeOrderBook, CurrencyPair.XRP_EUR)
+
+        val updatedOtherExchangeOrderBook = otherExchangeOrderBook.copy(buyOffers = listOf(Offer(4, 15)))
+
+        orderBookStore.update(updatedOtherExchangeOrderBook, CurrencyPair.BTC_EUR)
+
+        assertThat(orderBookStore.getBooksFor(CurrencyPair.XRP_EUR), containsInAnyOrder(testOrderBook, otherExchangeOrderBook))
     }
 }

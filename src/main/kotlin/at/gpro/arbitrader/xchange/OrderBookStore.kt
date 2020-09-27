@@ -6,13 +6,18 @@ import at.gpro.arbitrader.entity.order.OrderBook
 import java.util.concurrent.ConcurrentHashMap
 
 class OrderBookStore {
-    private val exchangeToOrderBooks : MutableMap<Exchange, OrderBook> = ConcurrentHashMap()
+    private val exchangeMap : MutableMap<Exchange, MutableMap<CurrencyPair, OrderBook>> = ConcurrentHashMap()
 
     fun getBooksFor(pair: CurrencyPair): List<OrderBook> {
-        return ArrayList(exchangeToOrderBooks.values)
+        val bookList : MutableList<OrderBook> = ArrayList()
+        exchangeMap.values.forEach { currencyMap ->
+            currencyMap[pair]?.let { bookList.add(it) }
+        }
+        return bookList
     }
 
     fun update(orderBook: OrderBook, pair: CurrencyPair) {
-        exchangeToOrderBooks[orderBook.exchange] = orderBook
+        val pairMap = exchangeMap.getOrPut(orderBook.exchange, { ConcurrentHashMap() })
+        pairMap[pair] = orderBook
     }
 }
