@@ -5,6 +5,7 @@ import at.gpro.arbitrader.EMPTY_TEST_EXCHANGE
 import at.gpro.arbitrader.entity.CurrencyPair
 import at.gpro.arbitrader.entity.order.Offer
 import at.gpro.arbitrader.entity.order.OrderBook
+import at.gpro.arbitrader.util.time.ManualClock
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
 
@@ -131,5 +132,29 @@ internal class OrderBookStoreTest {
         orderBookStore.update(updatedOtherExchangeOrderBook, CurrencyPair.BTC_EUR)
 
         assertThat(orderBookStore.getBooksFor(CurrencyPair.XRP_EUR), containsInAnyOrder(testOrderBook, otherExchangeOrderBook))
+    }
+
+    @Test
+    internal fun `orderbook no longer present after period expired`() {
+        val clock = ManualClock()
+        val manualOrderBookStore = OrderBookStore(clock)
+        val testOrderBook = OrderBook(
+            EMPTY_TEST_EXCHANGE,
+            listOf(
+                Offer(1, 7),
+                Offer(5, 14)
+            ),
+            listOf(
+                Offer(2, 4),
+                Offer(3, 2)
+            )
+        )
+
+        manualOrderBookStore.update(testOrderBook, CurrencyPair.XRP_EUR)
+
+        clock.expireTimers()
+
+        assertThat(manualOrderBookStore.getBooksFor(CurrencyPair.XRP_EUR), empty())
+
     }
 }
