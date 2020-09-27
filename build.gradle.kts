@@ -16,6 +16,7 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging:1.7.9")
     implementation("org.slf4j:slf4j-simple:1.7.29")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.6")
+    implementation("com.google.code.gson:gson:2.8.6")
     
     // xchange
     implementation("org.knowm.xchange:xchange-core:5.0.2")

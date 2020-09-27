@@ -21,10 +21,11 @@ import java.util.*
 internal class OrderBookConverterTest {
 
     companion object {
-        val TEST_EXCHANGE = object : SdkExchange {
-            override fun getAccountService(): AccountService? = null
+        val TEST_EXCHANGE = object : XchangeExchange {
             override fun getExchangeSpecification(): ExchangeSpecification =
                 ExchangeSpecification("test exchange").apply { exchangeName = "test exchange" }
+
+            override fun getAccountService(): AccountService? = null
             override fun getExchangeMetaData(): ExchangeMetaData? = null
             override fun remoteInit() {}
             override fun getExchangeSymbols(): MutableList<CurrencyPair> = ArrayList()
@@ -38,7 +39,7 @@ internal class OrderBookConverterTest {
 
     @Test
     fun `empty orderbook`() {
-        val convertedBook = OrderBookConverter().convert(SdkOrderBook(Date(), emptyList(), emptyList()), TEST_EXCHANGE)
+        val convertedBook = OrderBookConverter().convert(XchangeOrderBook(Date(), emptyList(), emptyList()), TEST_EXCHANGE)
         assertThat(convertedBook.buyOffers, empty())
         assertThat(convertedBook.sellOffers, empty())
         assertThat(convertedBook.exchange.getName(), `is`(TEST_EXCHANGE.exchangeSpecification.exchangeName))
@@ -47,7 +48,7 @@ internal class OrderBookConverterTest {
     @Test
     fun `2 asks 2 bids`() {
         val convertedBook = OrderBookConverter().convert(
-            SdkOrderBook(
+            XchangeOrderBook(
                 Date(),
                 listOf(
                     makeOrder(Order.OrderType.ASK, BigDecimal(1), BigDecimal(12)),

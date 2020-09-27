@@ -10,8 +10,8 @@ import java.util.concurrent.ConcurrentHashMap
 
 private val LOG = KotlinLogging.logger {}
 
-typealias SdkOrderBook = org.knowm.xchange.dto.marketdata.OrderBook?
-typealias SdkExchange = org.knowm.xchange.Exchange
+typealias XchangeOrderBook = org.knowm.xchange.dto.marketdata.OrderBook?
+typealias XchangeExchange = org.knowm.xchange.Exchange
 
 class WebSocketProvider(private val exchanges : List<StreamingExchange>) : UpdateProvider {
 
@@ -21,9 +21,7 @@ class WebSocketProvider(private val exchanges : List<StreamingExchange>) : Updat
     private val orderBookConverter = OrderBookConverter()
 
     init {
-        subscriptions = exchanges
-            .onEach { it.connect().blockingAwait() }
-            .map { subscribeOrderBooks(it) }
+        subscriptions = exchanges.map { subscribeOrderBooks(it) }
     }
 
     private fun subscribeOrderBooks(exchange: StreamingExchange): Disposable =
@@ -31,7 +29,7 @@ class WebSocketProvider(private val exchanges : List<StreamingExchange>) : Updat
             .getOrderBook(CurrencyPair.BTC_EUR)
             .subscribe { orderBook -> onOrderBookUpdate(orderBook, exchange) }
 
-    private fun onOrderBookUpdate(orderBook: SdkOrderBook,
+    private fun onOrderBookUpdate(orderBook: XchangeOrderBook,
                                   exchange : StreamingExchange) {
         if (orderBook == null) {
             LOG.warn { "Received null orderbook from ${exchange.defaultExchangeSpecification.exchangeName}" }

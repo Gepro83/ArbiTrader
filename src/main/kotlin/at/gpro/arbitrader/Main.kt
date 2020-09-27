@@ -1,38 +1,39 @@
 package at.gpro.arbitrader
 
-import info.bitrich.xchangestream.bitstamp.v2.BitstampStreamingExchange
-import info.bitrich.xchangestream.core.StreamingExchange
+import at.gpro.arbitrader.security.model.ApiKeyStore
+import info.bitrich.xchangestream.coinbasepro.CoinbaseProStreamingExchange
+import info.bitrich.xchangestream.core.ProductSubscription
 import info.bitrich.xchangestream.core.StreamingExchangeFactory
 import mu.KotlinLogging
 import org.knowm.xchange.currency.CurrencyPair
-import org.knowm.xchange.dto.marketdata.OrderBook
+import java.io.File
 
+private val API_KEY_STORE = ApiKeyStore.from(File("/Users/gprohaska/Documents/crypto/ApiKeys.json"))
+private val COINBASEPRO_KEY = API_KEY_STORE?.getKey("CoinbasePro") ?: throw Exception("Could not find CoinbasePro key")
+private val KRAKEN_KEY = API_KEY_STORE?.getKey("Kraken") ?: throw Exception("Could not find Kraken key")
 
 private val LOG = KotlinLogging.logger {}
 
 fun main() {
     LOG.info { "Arbitrader starting!" }
 
-    val exchange: StreamingExchange =
-        StreamingExchangeFactory.INSTANCE.createExchange(BitstampStreamingExchange::class.java.name)
 
-    // Connect to the Exchange WebSocket API. Here we use a blocking wait.
-    exchange.connect().blockingAwait()
+    val productSubscription = ProductSubscription.create()
+        .addTicker(CurrencyPair.ETH_USD)
+        .addOrders(CurrencyPair.LTC_EUR)
+        .addOrderbook(CurrencyPair.BTC_USD)
+        .addTrades(CurrencyPair.BTC_USD)
+        .addUserTrades(CurrencyPair.LTC_EUR)
+        .build()
 
+    val spec = StreamingExchangeFactory.INSTANCE
+        .createExchange(CoinbaseProStreamingExchange::class.java.name)
+        .defaultExchangeSpecification
+    spec.apiKey = COINBASEPRO_KEY.apiKey
+    spec.secretKey = COINBASEPRO_KEY.secret
+    spec.setExchangeSpecificParametersItem("passphrase", COINBASEPRO_KEY.specificParameter?.value)
+    val exchange =
+        StreamingExchangeFactory.INSTANCE.createExchange(spec) as CoinbaseProStreamingExchange
 
-    // Subscribe order book data with the reference to the subscription.
-    val subscription2 = exchange.streamingMarketDataService
-        .getOrderBook(CurrencyPair.BTC_USD)
-        .subscribe { orderBook: OrderBook? ->
-            LOG.info { "asks: " + orderBook?.asks?.map { it.limitPrice } }
-        }
-
-    // Wait for a while to see some results arrive
-    Thread.sleep(2000)
-
-    // Unsubscribe
-    subscription2.dispose()
-
-    // Disconnect from exchange (blocking again)
-    exchange.disconnect().blockingAwait()
+    exchange.connect(productSubscription).blockingAwait()
 }

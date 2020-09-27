@@ -1,6 +1,8 @@
 package at.gpro.arbitrader
 
 import at.gpro.arbitrader.entity.Exchange
+import at.gpro.arbitrader.security.model.ApiKeyStore
+import java.io.File
 import java.math.BigDecimal
 
 val TWO = BigDecimal(2)
@@ -14,3 +16,8 @@ val TESTEXCHANGE = object : Exchange {
     override fun getName(): String = "TestExchange"
     override fun toString(): String = "TestExchange"
 }
+
+val API_KEY_STORE = ApiKeyStore.from(File("/Users/gprohaska/Documents/crypto/ApiKeys.json"))
+
+val COINBASEPRO_KEY = API_KEY_STORE?.getKey("CoinbasePro") ?: throw Exception("Could not find CoinbasePro key")
+val KRAKEN_KEY = API_KEY_STORE?.getKey("Kraken") ?: throw Exception("Could not find Kraken key")
