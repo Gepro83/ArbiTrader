@@ -1,10 +1,16 @@
 
 plugins {
-    kotlin("jvm") version "1.3.61"
+    kotlin("jvm") version "1.4.10"
+    idea
 }
 
 group = "at.gpro"
 version = "1.0-SNAPSHOT"
+
+idea.module {
+    isDownloadJavadoc = true
+    isDownloadSources = true
+}
 
 repositories {
     mavenCentral()
@@ -19,11 +25,11 @@ dependencies {
     implementation("com.google.code.gson:gson:2.8.6")
     
     // xchange
-    implementation("org.knowm.xchange:xchange-core:5.0.2")
-    implementation("org.knowm.xchange:xchange-stream-coinbasepro:5.0.2")
-    implementation("org.knowm.xchange:xchange-stream-kraken:5.0.2")
-    implementation("org.knowm.xchange:xchange-stream-bitstamp:5.0.2")
-    implementation("org.knowm.xchange:xchange-stream-binance:5.0.2")
+    implementation("org.knowm.xchange:xchange-core:5.0.4")
+    implementation("org.knowm.xchange:xchange-stream-coinbasepro:5.0.4")
+    implementation("org.knowm.xchange:xchange-stream-kraken:5.0.4")
+    implementation("org.knowm.xchange:xchange-stream-bitstamp:5.0.4")
+    implementation("org.knowm.xchange:xchange-stream-binance:5.0.4")
     
     
     // test

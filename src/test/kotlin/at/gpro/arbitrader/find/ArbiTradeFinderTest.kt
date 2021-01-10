@@ -1,9 +1,9 @@
 package at.gpro.arbitrader.find
 
 import at.gpro.arbitrader.*
-import at.gpro.arbitrader.entity.BuyOffer
+import at.gpro.arbitrader.entity.ArbiTrade
 import at.gpro.arbitrader.entity.Exchange
-import at.gpro.arbitrader.entity.SellOffer
+import at.gpro.arbitrader.entity.ExchangePrice
 import at.gpro.arbitrader.entity.order.Offer
 import at.gpro.arbitrader.entity.order.OrderBook
 import org.hamcrest.MatcherAssert.assertThat
@@ -60,12 +60,13 @@ internal class ArbiTradeFinderTest {
 
         assertThat(trades, hasItem(
             ArbiTrade(
-                BuyOffer(
-                    Offer(amount = FIVE, price = THREE),
+                amount = FIVE,
+                ExchangePrice(
+                    price = THREE,
                     COINBASE
                 ),
-                SellOffer(
-                    Offer(amount = FIVE, price = FOUR),
+                ExchangePrice(
+                    price = FOUR,
                     KRAKEN
                 )
             )
@@ -93,12 +94,13 @@ internal class ArbiTradeFinderTest {
 
         assertThat(trades, hasItem(
             ArbiTrade(
-                BuyOffer(
-                    Offer(amount = FIVE, price = THREE),
+                amount = FIVE,
+                ExchangePrice(
+                    price = THREE,
                     COINBASE
                 ),
-                SellOffer(
-                    Offer(amount = FIVE, price = FOUR),
+                ExchangePrice(
+                    price = FOUR,
                     KRAKEN
                 )
             )
@@ -122,12 +124,13 @@ internal class ArbiTradeFinderTest {
 
         assertThat(trades, hasItem(
             ArbiTrade(
-                BuyOffer(
-                    Offer(amount = FIVE, price = THREE),
+                amount = FIVE,
+                ExchangePrice(
+                    price = THREE,
                     COINBASE
                 ),
-                SellOffer(
-                    Offer(amount = FIVE, price = FOUR),
+                ExchangePrice(
+                    price = FOUR,
                     KRAKEN
                 )
             )
@@ -162,22 +165,24 @@ internal class ArbiTradeFinderTest {
 
         assertThat(trades, hasItems(
             ArbiTrade(
-                BuyOffer(
-                    Offer(amount = THREE, price = THREE),
+                amount = THREE,
+                ExchangePrice(
+                    price = THREE,
                     COINBASE
                 ),
-                SellOffer(
-                    Offer(amount = THREE, price = SIX),
+                ExchangePrice(
+                    price = SIX,
                     KRAKEN
                 )
             ),
             ArbiTrade(
-                BuyOffer(
-                    Offer(amount = ONE, price = THREE),
+                amount = ONE,
+                ExchangePrice(
+                    price = THREE,
                     COINBASE
                 ),
-                SellOffer(
-                    Offer(amount = ONE, price = FIVE),
+                ExchangePrice(
+                    price = FIVE,
                     KRAKEN
                 )
             )
@@ -212,32 +217,35 @@ internal class ArbiTradeFinderTest {
 
         assertThat(trades, hasItems(
             ArbiTrade(
-                BuyOffer(
-                    Offer(amount = THREE, price = THREE),
+                amount = THREE,
+                ExchangePrice(
+                    price = THREE,
                     COINBASE
                 ),
-                SellOffer(
-                    Offer(amount = THREE, price = SIX),
+                ExchangePrice(
+                    price = SIX,
                     KRAKEN
                 )
             ),
             ArbiTrade(
-                BuyOffer(
-                    Offer(amount = ONE, price = THREE),
+                amount = ONE,
+                ExchangePrice(
+                    price = THREE,
                     COINBASE
                 ),
-                SellOffer(
-                    Offer(amount = ONE, price = FIVE),
+                ExchangePrice(
+                    price = FIVE,
                     KRAKEN
                 )
             ),
             ArbiTrade(
-                BuyOffer(
-                    Offer(amount = ONE, price = FOUR),
+                amount = ONE,
+                ExchangePrice(
+                    price = FOUR,
                     COINBASE
                 ),
-                SellOffer(
-                    Offer(amount = ONE, price = FIVE),
+                ExchangePrice(
+                    price = FIVE,
                     KRAKEN
                 )
             )
@@ -285,12 +293,13 @@ internal class ArbiTradeFinderTest {
 
         assertThat(trades, hasItem(
             ArbiTrade(
-                BuyOffer(
-                    Offer(amount = FIVE, price = THREE),
+                amount = FIVE,
+                ExchangePrice(
+                    price = THREE,
                     COINBASE
                 ),
-                SellOffer(
-                    Offer(amount = FIVE, price = FOUR),
+                ExchangePrice(
+                    price = FOUR,
                     KRAKEN
                 )
             )
@@ -328,12 +337,13 @@ internal class ArbiTradeFinderTest {
 
         assertThat(trades, hasItem(
             ArbiTrade(
-                BuyOffer(
-                    Offer(amount = FIVE, price = THREE),
+                amount = FIVE,
+                ExchangePrice(
+                    price = THREE,
                     COINBASE
                 ),
-                SellOffer(
-                    Offer(amount = FIVE, price = FOUR),
+                ExchangePrice(
+                    price = FOUR,
                     KRAKEN
                 )
             )

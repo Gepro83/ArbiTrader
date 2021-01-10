@@ -27,20 +27,22 @@ class WebSocketProvider(private val exchanges : List<WebSocketExchange>) : Updat
             .flatten()
     }
 
-    private fun subscribeOrderBooks(exchange: WebSocketExchange): List<Disposable> {
-        val subscriptions = ArrayList<Disposable>()
-        for (pair in exchange.supportedPairs) {
-            val subscription = exchange.streamingMarketDataService
-                .getOrderBook(pairConverter.convert(pair))
-                .subscribe { orderBook -> onOrderBookUpdate(orderBook, pair, exchange) }
-            subscriptions.add(subscription)
-        }
-        return subscriptions
-    }
+    private fun subscribeOrderBooks(exchange: WebSocketExchange) : List<Disposable> =
+        exchange.supportedPairs
+            .map { subscribeOrderBookFor(exchange, it) }
+            .toList()
 
-    private fun onOrderBookUpdate(orderBook: XchangeOrderBook,
+    private fun subscribeOrderBookFor(
+        exchange: WebSocketExchange,
+        pair: CurrencyPair
+    ) = exchange.streamingMarketDataService
+            .getOrderBook(pairConverter.convert(pair))
+            .subscribe { orderBook -> onOrderBookUpdate(orderBook, pair, exchange) }
+
+    private fun onOrderBookUpdate(orderBook: XchangeOrderBook?,
                                   currencyPair: CurrencyPair,
-                                  exchange : Exchange) {
+                                  exchange : Exchange
+    ) {
         if (orderBook == null) {
             LOG.warn { "Received null orderbook from ${exchange.getName()}" }
             return

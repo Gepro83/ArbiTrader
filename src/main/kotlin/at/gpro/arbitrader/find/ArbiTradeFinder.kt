@@ -1,10 +1,8 @@
 package at.gpro.arbitrader.find
 
-import at.gpro.arbitrader.control.TradeFinder
-import at.gpro.arbitrader.entity.BuyOffer
+import at.gpro.arbitrader.entity.ArbiTrade
 import at.gpro.arbitrader.entity.Exchange
-import at.gpro.arbitrader.entity.SellOffer
-import at.gpro.arbitrader.entity.Trade
+import at.gpro.arbitrader.entity.ExchangePrice
 import at.gpro.arbitrader.entity.order.Offer
 import at.gpro.arbitrader.entity.order.OrderBook
 import mu.KotlinLogging
@@ -12,16 +10,7 @@ import java.math.BigDecimal
 
 private val LOG = KotlinLogging.logger {}
 
-class ArbiTradeFinderFacade() : TradeFinder {
-    override fun findTrades(orderBooks: List<OrderBook>): List<Trade> {
-        if (orderBooks.size != 2)
-            throw IllegalArgumentException("ArbitTradeFinder needs exactly 2 orderbooks")
-
-        return ArbiTradeFinder(orderBooks[0], orderBooks[0]).findTrades()
-    }
-}
-
-internal class ArbiTradeFinder(orderBook: OrderBook, compareOrderBook: OrderBook) {
+class ArbiTradeFinder(orderBook: OrderBook, compareOrderBook: OrderBook) {
     private val buyExchange: Exchange
     private val sellExchange: Exchange
     private val buyOffers : List<Offer>
@@ -107,12 +96,13 @@ internal class ArbiTradeFinder(orderBook: OrderBook, compareOrderBook: OrderBook
 
             arbiTrades.add(
                 ArbiTrade(
-                    BuyOffer(
-                        Offer(amount, currentSellPrice),
+                    amount,
+                    ExchangePrice(
+                        currentSellPrice,
                         sellExchange
                     ),
-                    SellOffer(
-                        Offer(amount, currentBuyPrice),
+                    ExchangePrice(
+                        currentBuyPrice,
                         buyExchange
                     )
                 )

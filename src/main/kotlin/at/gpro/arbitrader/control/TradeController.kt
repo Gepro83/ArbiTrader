@@ -1,11 +1,13 @@
 package at.gpro.arbitrader.control
 
+import at.gpro.arbitrader.entity.CurrencyPair
+import at.gpro.arbitrader.find.ArbiTradeFinder
 import mu.KotlinLogging
 
 private val LOG = KotlinLogging.logger {}
 
 class TradeController(
-    private val tradeFinder: TradeFinder,
+    private val tradeFinder: ArbiTradeFinder,
     private val updateProvider: UpdateProvider,
     private val tradeExecutor: TradeExecutor,
     private val tradeSelector: TradeSelector
@@ -19,15 +21,9 @@ class TradeController(
 
     private fun runMainLoop() {
         TODO("needs testing for different currencypairs")
-//        val orderBooks = updateProvider.getOrderBooks()
 
-//        val trades = tradeFinder.findTrades(orderBooks)
-//
-//        val selectedTrades = tradeSelector.selectTrades(trades)
-//
-//        if (selectedTrades.isNotEmpty()) {
-//            LOG.debug { "${selectedTrades.size} trades found. executing..." }
-//            tradeExecutor.executeTrades(selectedTrades)
-//        }
+        val orderBooks = updateProvider.getOrderBooks(CurrencyPair.BTC_EUR)
+//        val findTrades = tradeFinder.findTrades(orderBooks)
+//        findTrades
     }
 }
