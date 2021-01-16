@@ -1,7 +1,7 @@
 package at.gpro.arbitrader.control
 
-import at.gpro.arbitrader.entity.ArbiTrade
+import at.gpro.arbitrader.entity.CurrencyTrade
 
 interface TradeExecutor {
-    fun executeTrades(trades: List<ArbiTrade>)
+    fun executeTrades(trades: List<CurrencyTrade>)
 }

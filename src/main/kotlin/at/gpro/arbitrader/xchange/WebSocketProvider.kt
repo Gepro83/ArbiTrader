@@ -13,7 +13,10 @@ import mu.KotlinLogging
 
 private val LOG = KotlinLogging.logger {}
 
-class WebSocketProvider(private val exchanges : List<WebSocketExchange>) : UpdateProvider {
+class WebSocketProvider(
+    private val exchanges: List<WebSocketExchange>,
+    private val pairs: List<CurrencyPair>
+) : UpdateProvider {
 
     private val subscriptions : List<Disposable>
     private val orderBookStore = OrderBookStore()
@@ -28,9 +31,14 @@ class WebSocketProvider(private val exchanges : List<WebSocketExchange>) : Updat
     }
 
     private fun subscribeOrderBooks(exchange: WebSocketExchange) : List<Disposable> =
-        exchange.supportedPairs
+        pairsToSubscribe(exchange)
             .map { subscribeOrderBookFor(exchange, it) }
-            .toList()
+
+    private fun pairsToSubscribe(exchange: WebSocketExchange): List<CurrencyPair> =
+        if (pairs.isEmpty())
+            exchange.supportedPairs
+        else
+            pairs
 
     private fun subscribeOrderBookFor(
         exchange: WebSocketExchange,
@@ -38,6 +46,7 @@ class WebSocketProvider(private val exchanges : List<WebSocketExchange>) : Updat
     ) = exchange.streamingMarketDataService
             .getOrderBook(pairConverter.convert(pair))
             .subscribe { orderBook -> onOrderBookUpdate(orderBook, pair, exchange) }
+            .also { LOG.debug { "subscribed $pair at $exchange" } }
 
     private fun onOrderBookUpdate(orderBook: XchangeOrderBook?,
                                   currencyPair: CurrencyPair,
@@ -51,7 +60,11 @@ class WebSocketProvider(private val exchanges : List<WebSocketExchange>) : Updat
         orderBookStore.update(orderBookConverter.convert(orderBook, exchange), currencyPair)
     }
 
-    override fun getOrderBooks(currencyPair: CurrencyPair): List<OrderBook> = orderBookStore.getBooksFor(currencyPair)
+    override fun getOrderBooks(currencyPair: CurrencyPair): List<OrderBook> =
+        if(currencyPair in pairs)
+            orderBookStore.getBooksFor(currencyPair)
+        else
+            throw IllegalArgumentException("$currencyPair not supported by this object")
 
     fun stop() {
         subscriptions.forEach(Disposable::dispose)

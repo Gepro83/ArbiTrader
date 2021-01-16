@@ -17,3 +17,8 @@ data class ExchangePrice(
 ) {
     constructor(price: Int, exchange: Exchange) : this(BigDecimal(price), exchange)
 }
+
+data class CurrencyTrade(
+    val trade: ArbiTrade,
+    val pair: CurrencyPair
+)

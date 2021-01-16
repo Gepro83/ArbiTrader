@@ -9,8 +9,9 @@ private val LOG = KotlinLogging.logger {}
 class TradeController(
     private val tradeFinder: ArbiTradeFinder,
     private val updateProvider: UpdateProvider,
+    private val tradeSelector: TradeSelector,
     private val tradeExecutor: TradeExecutor,
-    private val tradeSelector: TradeSelector
+    private val currencyPairs: List<CurrencyPair>
 ) {
 
     fun runUntil(isStopped: () -> Boolean) {
@@ -20,10 +21,12 @@ class TradeController(
     }
 
     private fun runMainLoop() {
-        TODO("needs testing for different currencypairs")
+
 
         val orderBooks = updateProvider.getOrderBooks(CurrencyPair.BTC_EUR)
 //        val findTrades = tradeFinder.findTrades(orderBooks)
 //        findTrades
     }
+
+//    private fun checkPair(pair)
 }

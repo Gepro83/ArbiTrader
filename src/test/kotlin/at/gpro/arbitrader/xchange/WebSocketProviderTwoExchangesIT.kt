@@ -34,7 +34,7 @@ internal class WebSocketProviderTwoExchangesIT {
                 listOf(XchangePair.BTC_EUR, XchangePair.ETH_EUR)
             ) ?: fail("Could not build Kraken exchange")
 
-        private val TEST_PROVIDER = WebSocketProvider(listOf(COINBASE, KRAKEN)) //, KRAKEN))
+        private val TEST_PROVIDER = WebSocketProvider(listOf(COINBASE, KRAKEN), emptyList<CurrencyPair>()) //, KRAKEN))
 
         @AfterAll
         @JvmStatic

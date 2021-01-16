@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.4.10"
@@ -37,4 +38,14 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.2")
     testImplementation("io.mockk:mockk:1.10.2")
+}
+
+val compileKotlin: KotlinCompile by tasks
+val compileTestKotlin: KotlinCompile by tasks
+
+compileKotlin.kotlinOptions {
+    jvmTarget = "1.8"
+}
+compileTestKotlin.kotlinOptions {
+    jvmTarget = "1.8"
 }
