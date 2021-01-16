@@ -31,7 +31,6 @@ class ArbiTradeFinder(orderBook: OrderBook, compareOrderBook: OrderBook) {
     private var buyOfferFilledAmount = BigDecimal.ZERO
 
     init {
-        LOG.debug { "New Arbitarder created for orderbooks $orderBook and $compareOrderBook" }
         val sortedOrderBook = orderBook.asSorted()
         val sortedCompareOderBook = compareOrderBook.asSorted()
         if (areAnyOffersEmpty(sortedOrderBook, sortedCompareOderBook)) {
@@ -116,7 +115,6 @@ class ArbiTradeFinder(orderBook: OrderBook, compareOrderBook: OrderBook) {
 
             setCurrentPrices()
         }
-        LOG.info { "found trades: $arbiTrades" }
         return arbiTrades
     }
 

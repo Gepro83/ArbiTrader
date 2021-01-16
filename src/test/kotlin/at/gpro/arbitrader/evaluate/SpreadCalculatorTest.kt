@@ -30,4 +30,15 @@ internal class SpreadCalculatorTest {
 
         assertThat(SpreadCalculator.calculateSpread(spread), `is`(0.2))
     }
+
+    @Test
+    internal fun `spread for number with necessary scale`() {
+        val spread = ArbiTrade(
+            amount = 1,
+            buyPrice = ExchangePrice(9, EMPTY_TEST_EXCHANGE),
+            sellPrice = ExchangePrice(13, EMPTY_TEST_EXCHANGE)
+        )
+
+        assertThat(SpreadCalculator.calculateSpread(spread), `is`(0.4444444444444444))
+    }
 }
