@@ -1,14 +1,14 @@
 package at.gpro.arbitrader.control
 
 import at.gpro.arbitrader.entity.CurrencyPair
-import at.gpro.arbitrader.find.ArbiTradeFinder
+import at.gpro.arbitrader.entity.CurrencyTrade
 import mu.KotlinLogging
 
 private val LOG = KotlinLogging.logger {}
 
 class TradeController(
-    private val tradeFinder: ArbiTradeFinder,
     private val updateProvider: UpdateProvider,
+    private val tradeFinder: TradeFinder,
     private val tradeSelector: TradeSelector,
     private val tradeExecutor: TradeExecutor,
     private val currencyPairs: List<CurrencyPair>
@@ -21,12 +21,22 @@ class TradeController(
     }
 
     private fun runMainLoop() {
-
-
-        val orderBooks = updateProvider.getOrderBooks(CurrencyPair.BTC_EUR)
-//        val findTrades = tradeFinder.findTrades(orderBooks)
-//        findTrades
+        currencyPairs.forEach { checkPair(it) }
     }
 
-//    private fun checkPair(pair)
+    private fun checkPair(pair: CurrencyPair) {
+        val orderBooks = updateProvider.getOrderBooks(pair)
+
+        if(orderBooks.size < 2) {
+            Thread.sleep(2000)
+            return
+        }
+
+        val trades = tradeFinder.findTrades(orderBooks[0], orderBooks[1])
+
+        val selectedTrades = tradeSelector.selectTrades(trades)
+
+        tradeExecutor.executeTrades(selectedTrades.map { CurrencyTrade(it, pair) })
+
+    }
 }

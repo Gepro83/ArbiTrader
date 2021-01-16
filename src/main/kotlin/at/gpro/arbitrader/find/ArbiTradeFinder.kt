@@ -1,5 +1,6 @@
 package at.gpro.arbitrader.find
 
+import at.gpro.arbitrader.control.TradeFinder
 import at.gpro.arbitrader.entity.ArbiTrade
 import at.gpro.arbitrader.entity.Exchange
 import at.gpro.arbitrader.entity.ExchangePrice
@@ -9,6 +10,11 @@ import mu.KotlinLogging
 import java.math.BigDecimal
 
 private val LOG = KotlinLogging.logger {}
+
+class ArbiTradeFinderFacade() : TradeFinder {
+    override fun findTrades(orderBook: OrderBook, compareOderBook: OrderBook): List<ArbiTrade> =
+        ArbiTradeFinder(orderBook, compareOderBook).findTrades()
+}
 
 class ArbiTradeFinder(orderBook: OrderBook, compareOrderBook: OrderBook) {
     private val buyExchange: Exchange

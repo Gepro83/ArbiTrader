@@ -1,7 +1,6 @@
 package at.gpro.arbitrader.execute
 
 import at.gpro.arbitrader.control.TradeExecutor
-import at.gpro.arbitrader.entity.ArbiTrade
 import at.gpro.arbitrader.entity.CurrencyTrade
 import at.gpro.arbitrader.evaluate.SpreadCalculator
 import mu.KotlinLogging
@@ -16,7 +15,6 @@ class CsvLogger(
 
     init {
         if(!file.exists()) {
-            LOG.debug { "HIHIHI" }
             file.createNewFile()
             file.writeText(CSV_HEADER + System.lineSeparator())
         }
@@ -30,6 +28,8 @@ class CsvLogger(
         LOG.info { "executing $trades" }
 
         file.appendText(trades.joinToString(System.lineSeparator()) { getLineFor(it) })
+
+        Thread.sleep(delayBetweenExecuteMS)
     }
 
     private fun getLineFor(trade: CurrencyTrade): String =
@@ -43,4 +43,5 @@ class CsvLogger(
             trade.trade.sellPrice.exchange.getName(),
             trade.pair,
         ).joinToString(";")
+            .also { LOG.debug { it }}
 }
