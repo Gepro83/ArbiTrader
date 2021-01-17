@@ -50,31 +50,37 @@ class WebSocketExchangeBuilder {
             exchangeClass : Class<T>,
             key: ApiKey,
             currenctPairs : List<XchangePair>
+        ) : WebSocketExchange? = _buildAndConnectFrom(exchangeClass, key, currenctPairs)
+
+        fun <T> buildAndConnectFrom(
+            exchangeClass : Class<T>,
+            currenctPairs : List<XchangePair>
+        ) : WebSocketExchange? = _buildAndConnectFrom(exchangeClass, null, currenctPairs)
+
+        private fun <T> _buildAndConnectFrom(
+            exchangeClass : Class<T>,
+            key: ApiKey?,
+            currenctPairs : List<XchangePair>
         ) : WebSocketExchange? {
-            val productSubscription =
-                buildProductSubscription(
-                    currenctPairs
-                )
-            val specification  =
-                buildSpecification(
-                    exchangeClass,
-                    key
-                )
+            val productSubscription = buildProductSubscription(currenctPairs)
+
+            val specification  = key?.let { buildSpecification(exchangeClass, it) }
+                ?: buildSpecification(exchangeClass)
 
             val xchange = StreamingExchangeFactory.INSTANCE.createExchange(specification)
                 .apply { connect(productSubscription).blockingAwait() }
 
-            return WebSocketExchange(
-                xchange,
-                CurrencyPairConverter().convertToCurrencyPair(currenctPairs)
-            )
+            return WebSocketExchange(xchange, CurrencyPairConverter().convertToCurrencyPair(currenctPairs))
         }
 
-        private fun buildSpecification(exchangeClass: Class<*>, key: ApiKey) =
+
+        private fun buildSpecification(exchangeClass: Class<*>) =
             StreamingExchangeFactory.INSTANCE
                 .createExchange(exchangeClass.name)
                 .defaultExchangeSpecification
-                .apply(key)
+
+        private fun buildSpecification(exchangeClass: Class<*>, key: ApiKey) =
+            buildSpecification(exchangeClass).apply(key)
 
         private fun ExchangeSpecification.apply(key: ApiKey) : ExchangeSpecification {
             apiKey = key.apiKey

@@ -25,9 +25,9 @@ class CsvLogger(
     }
 
     override fun executeTrades(trades: List<CurrencyTrade>) {
-        LOG.info { "executing $trades" }
+//        LOG.info { "executing $trades" }
 
-        file.appendText(trades.joinToString(System.lineSeparator()) { getLineFor(it) })
+        file.appendText(trades.joinToString(System.lineSeparator()) { getLineFor(it) } + System.lineSeparator())
 
         Thread.sleep(delayBetweenExecuteMS)
     }

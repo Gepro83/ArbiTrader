@@ -3,6 +3,7 @@ package at.gpro.arbitrader.util.time
 import java.time.Duration
 
 class SystemClock : Clock {
+
     override fun makeTimer(duration: Duration): Timer = SystemTimer(duration.toMillis())
 
     private class SystemTimer(private val durationMillis: Long) : Timer {

@@ -12,4 +12,8 @@ class ManualClock : Clock {
     fun expireTimers() {
         timersExpired = true
     }
+
+    fun unexpireTimers() {
+        timersExpired = false
+    }
 }

@@ -21,18 +21,27 @@ class TradeController(
     }
 
     private fun runMainLoop() {
-        currencyPairs.forEach { checkPair(it) }
+        currencyPairs.forEach {
+            checkPair(it)
+        }
+        Thread.sleep(200)
     }
 
     private fun checkPair(pair: CurrencyPair) {
         val orderBooks = updateProvider.getOrderBooks(pair)
 
-        if(orderBooks.size < 2) {
-            Thread.sleep(2000)
+        if(orderBooks.size < 3)
             return
-        }
 
-        val trades = tradeFinder.findTrades(orderBooks[0], orderBooks[1])
+        val trades = ArrayList(tradeFinder.findTrades(orderBooks[0], orderBooks[1]))
+        trades.addAll(tradeFinder.findTrades(orderBooks[1], orderBooks[2]))
+        trades.addAll(tradeFinder.findTrades(orderBooks[0], orderBooks[2]))
+
+        if (orderBooks.size == 4) {
+            trades.addAll(tradeFinder.findTrades(orderBooks[3], orderBooks[0]))
+            trades.addAll(tradeFinder.findTrades(orderBooks[3], orderBooks[1]))
+            trades.addAll(tradeFinder.findTrades(orderBooks[3], orderBooks[2]))
+        }
 
         val selectedTrades = tradeSelector.selectTrades(trades)
 

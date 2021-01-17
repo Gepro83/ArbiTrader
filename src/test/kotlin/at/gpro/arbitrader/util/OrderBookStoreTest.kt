@@ -156,4 +156,5 @@ internal class OrderBookStoreTest {
         assertThat(manualOrderBookStore.getBooksFor(CurrencyPair.XRP_EUR), empty())
 
     }
+
 }

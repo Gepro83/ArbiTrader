@@ -1,14 +1,16 @@
 package at.gpro.arbitrader
 
 import at.gpro.arbitrader.control.TradeController
-import at.gpro.arbitrader.entity.CurrencyPair
 import at.gpro.arbitrader.evaluate.SpreadThresholdSelector
 import at.gpro.arbitrader.execute.CsvLogger
 import at.gpro.arbitrader.find.ArbiTradeFinderFacade
 import at.gpro.arbitrader.security.model.ApiKeyStore
 import at.gpro.arbitrader.xchange.WebSocketExchangeBuilder
 import at.gpro.arbitrader.xchange.WebSocketProvider
+import at.gpro.arbitrader.xchange.utils.CurrencyPairConverter
 import at.gpro.arbitrader.xchange.utils.XchangePair
+import info.bitrich.xchangestream.binance.BinanceStreamingExchange
+import info.bitrich.xchangestream.bitstamp.v2.BitstampStreamingExchange
 import info.bitrich.xchangestream.coinbasepro.CoinbaseProStreamingExchange
 import info.bitrich.xchangestream.kraken.KrakenStreamingExchange
 import mu.KotlinLogging
@@ -23,42 +25,46 @@ private val LOG = KotlinLogging.logger {}
 fun main() {
     LOG.info { "Arbitrader starting!" }
 
+    val currenctPairs = listOf(
+        XchangePair.BTC_EUR,
+        XchangePair.ETH_EUR,
+        XchangePair.ETH_BTC,
+        XchangePair.XRP_EUR,
+        XchangePair.XRP_BTC,
+//        XchangePair.XRP_ETH
+    )
+
     val coinbase = WebSocketExchangeBuilder.buildAndConnectFrom(
         CoinbaseProStreamingExchange::class.java,
         COINBASEPRO_KEY,
-        listOf(XchangePair.BTC_EUR, XchangePair.ETH_EUR)
+        currenctPairs
     )!!
 
     val kraken = WebSocketExchangeBuilder.buildAndConnectFrom(
         KrakenStreamingExchange::class.java,
         KRAKEN_KEY,
-        listOf(XchangePair.BTC_EUR, XchangePair.ETH_EUR)
+        currenctPairs
     )!!
 
+    val bitstamp = WebSocketExchangeBuilder.buildAndConnectFrom(
+        BitstampStreamingExchange::class.java,
+        currenctPairs
+    )!!
+
+    val binance = WebSocketExchangeBuilder.buildAndConnectFrom(
+        BinanceStreamingExchange::class.java,
+        currenctPairs
+    )!!
+
+
+    val myPairs = CurrencyPairConverter().convertToCurrencyPair(currenctPairs)
+
     TradeController(
-        WebSocketProvider(listOf(coinbase, kraken), listOf(CurrencyPair.BTC_EUR, CurrencyPair.ETH_EUR)),
+        WebSocketProvider(listOf(coinbase, kraken, bitstamp, binance), myPairs),
         ArbiTradeFinderFacade(),
-        SpreadThresholdSelector(0.01),
-        CsvLogger(File("LOG.csv"), 5000),
-        listOf(CurrencyPair.BTC_EUR, CurrencyPair.ETH_EUR)
+        SpreadThresholdSelector(0.0035),
+        CsvLogger(File("LOG.csv"), 500),
+        myPairs
     ).runUntil { false }
 
-//    val productSubscription = ProductSubscription.create()
-//        .addTicker(CurrencyPair.ETH_USD)
-//        .addOrders(CurrencyPair.LTC_EUR)
-//        .addOrderbook(CurrencyPair.BTC_USD)
-//        .addTrades(CurrencyPair.BTC_USD)
-//        .addUserTrades(CurrencyPair.LTC_EUR)
-//        .build()
-//
-//    val spec = StreamingExchangeFactory.INSTANCE
-//        .createExchange(CoinbaseProStreamingExchange::class.java.name)
-//        .defaultExchangeSpecification
-//    spec.apiKey = COINBASEPRO_KEY.apiKey
-//    spec.secretKey = COINBASEPRO_KEY.secret
-//    spec.setExchangeSpecificParametersItem("passphrase", COINBASEPRO_KEY.specificParameter?.value)
-//    val exchange =
-//        StreamingExchangeFactory.INSTANCE.createExchange(spec) as CoinbaseProStreamingExchange
-//
-//    exchange.connect(productSubscription).blockingAwait()
 }

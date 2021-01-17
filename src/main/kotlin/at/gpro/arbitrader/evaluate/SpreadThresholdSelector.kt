@@ -13,6 +13,6 @@ class SpreadThresholdSelector(private val threshold: Double): TradeSelector {
 
     private fun calcSpreadAndLog(trade: ArbiTrade): Double =
         SpreadCalculator.calculateSpread(trade)
-            .also { LOG.info { "Spread: ${it * 100}% - $trade" } }
+//            .also { LOG.info { "Spread: ${it * 100}% - $trade" } }
 }
 

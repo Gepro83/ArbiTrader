@@ -6,11 +6,14 @@ import at.gpro.arbitrader.entity.order.OrderBook
 import at.gpro.arbitrader.util.time.Clock
 import at.gpro.arbitrader.util.time.SystemClock
 import at.gpro.arbitrader.util.time.Timer
+import mu.KotlinLogging
 import java.time.Duration
+
+private val LOG = KotlinLogging.logger {}
 
 class OrderBookStore(private val clock: Clock = SystemClock()) {
     companion object {
-        private val ORDERBOOK_RETENTION_DURATION = Duration.ofMillis(500)
+        private val ORDERBOOK_RETENTION_DURATION = Duration.ofMillis(800)
     }
     private val exchangeMap : MutableMap<Exchange, MutableMap<CurrencyPair, OrderBook>> = HashMap()
     private val timerMap: MutableMap<OrderBook, Timer> = HashMap()
@@ -54,6 +57,7 @@ class OrderBookStore(private val clock: Clock = SystemClock()) {
     fun update(orderBook: OrderBook, pair: CurrencyPair) {
         synchronized(this) {
             val pairMap = exchangeMap.getOrPut(orderBook.exchange, { HashMap() })
+            pairMap[pair]?.let { timerMap.remove(it) }
             pairMap[pair] = orderBook
             timerMap[orderBook] = clock.makeTimer(ORDERBOOK_RETENTION_DURATION).apply { start() }
         }
