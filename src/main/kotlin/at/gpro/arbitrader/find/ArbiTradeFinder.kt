@@ -113,15 +113,19 @@ class ArbiTradeFinder(orderBook: OrderBook, compareOrderBook: OrderBook) {
                 )
             )
 
+            if (isEndOfOffersReached())
+                return arbiTrades
+
             setCurrentPrices()
         }
         return arbiTrades
     }
 
+    private fun isEndOfOffersReached() = sellOffersIndex >= sellOffers.size || buyOffersIndex >= buyOffers.size
+
     private fun getRemainingSellOfferAmount() = sellOffers[sellOffersIndex].amount.minus(sellOfferFilledAmount)
 
     private fun getRemainingBuyOfferAmount() = buyOffers[buyOffersIndex].amount.minus(buyOfferFilledAmount)
-
 
     private fun setCurrentPrices() {
         currentBuyPrice = buyOffers[buyOffersIndex].price

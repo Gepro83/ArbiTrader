@@ -11,6 +11,9 @@ val FOUR = BigDecimal(4)
 val FIVE = BigDecimal(5)
 val SIX = BigDecimal(6)
 val SEVEN = BigDecimal(7)
+val NINE = BigDecimal(9)
+val ELEVEN = BigDecimal(11)
+val TWENTY = BigDecimal(20)
 
 val EMPTY_TEST_EXCHANGE = object : Exchange {
     override fun getName(): String = "TestExchange"

@@ -58,7 +58,7 @@ internal class ArbiTradeFinderTest {
             )
         ).findTrades()
 
-        assertThat(trades, hasItem(
+        assertThat(trades, contains(
             ArbiTrade(
                 amount = FIVE,
                 ExchangePrice(
@@ -92,7 +92,7 @@ internal class ArbiTradeFinderTest {
 
         val trades = arbiTrader.findTrades()
 
-        assertThat(trades, hasItem(
+        assertThat(trades, contains(
             ArbiTrade(
                 amount = FIVE,
                 ExchangePrice(
@@ -122,7 +122,7 @@ internal class ArbiTradeFinderTest {
             )
         ).findTrades()
 
-        assertThat(trades, hasItem(
+        assertThat(trades, contains(
             ArbiTrade(
                 amount = FIVE,
                 ExchangePrice(
@@ -163,7 +163,7 @@ internal class ArbiTradeFinderTest {
             )
         ).findTrades()
 
-        assertThat(trades, hasItems(
+        assertThat(trades, containsInAnyOrder(
             ArbiTrade(
                 amount = THREE,
                 ExchangePrice(
@@ -215,7 +215,7 @@ internal class ArbiTradeFinderTest {
             )
         ).findTrades()
 
-        assertThat(trades, hasItems(
+        assertThat(trades, containsInAnyOrder(
             ArbiTrade(
                 amount = THREE,
                 ExchangePrice(
@@ -249,7 +249,108 @@ internal class ArbiTradeFinderTest {
                     KRAKEN
                 )
             )
-        ))
+        )
+        )
+    }
+
+    @Test
+    fun `last selloffer used up by trade`() {
+        val trades = ArbiTradeFinder(
+            OrderBook(
+                KRAKEN,
+                sellOffers = listOf(
+                    Offer(amount = THREE, price = SEVEN), // buy
+                    Offer(amount = TWO, price = NINE)), // buy
+                buyOffers = listOf(
+                    Offer(amount = THREE, price = SIX)
+                )
+            ),
+            OrderBook(
+                COINBASE,
+                sellOffers = listOf(
+                    Offer(amount = FOUR, price = TWENTY)),
+                buyOffers = listOf(
+                    Offer(amount = TEN, price = TEN), // sell
+                    Offer(amount = TEN, price = ONE)
+                )
+            )
+        ).findTrades()
+
+        assertThat(trades, containsInAnyOrder(
+            ArbiTrade(
+                amount = THREE,
+                ExchangePrice(
+                    price = SEVEN,
+                    KRAKEN
+                ),
+                ExchangePrice(
+                    price = TEN,
+                    COINBASE
+                )
+            ),
+            ArbiTrade(
+                amount = TWO,
+                ExchangePrice(
+                    price = NINE,
+                    KRAKEN
+                ),
+                ExchangePrice(
+                    price = TEN,
+                    COINBASE
+                )
+            )
+        )
+        )
+    }
+
+    @Test
+    fun `last buyoffer used up by trade`() {
+        val trades = ArbiTradeFinder(
+            OrderBook(
+                KRAKEN,
+                sellOffers = listOf(
+                    Offer(amount = THREE, price = SEVEN), // buy
+                    Offer(amount = TWO, price = NINE), // buy
+                    Offer(amount = TWO, price = TEN)),
+                buyOffers = listOf(
+                    Offer(amount = THREE, price = SIX)
+                )
+            ),
+            OrderBook(
+                COINBASE,
+                sellOffers = listOf(
+                    Offer(amount = FOUR, price = TWENTY)),
+                buyOffers = listOf(
+                    Offer(amount = FIVE, price = ELEVEN), // sell
+                )
+            )
+        ).findTrades()
+
+        assertThat(trades, containsInAnyOrder(
+            ArbiTrade(
+                amount = THREE,
+                ExchangePrice(
+                    price = SEVEN,
+                    KRAKEN
+                ),
+                ExchangePrice(
+                    price = ELEVEN,
+                    COINBASE
+                )
+            ),
+            ArbiTrade(
+                amount = TWO,
+                ExchangePrice(
+                    price = NINE,
+                    KRAKEN
+                ),
+                ExchangePrice(
+                    price = ELEVEN,
+                    COINBASE
+                )
+            )
+        )
+        )
     }
 
     @Test
@@ -291,7 +392,7 @@ internal class ArbiTradeFinderTest {
             )
         ).findTrades()
 
-        assertThat(trades, hasItem(
+        assertThat(trades, contains(
             ArbiTrade(
                 amount = FIVE,
                 ExchangePrice(
@@ -335,7 +436,7 @@ internal class ArbiTradeFinderTest {
             )
         ).findTrades()
 
-        assertThat(trades, hasItem(
+        assertThat(trades, contains(
             ArbiTrade(
                 amount = FIVE,
                 ExchangePrice(

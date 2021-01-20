@@ -62,7 +62,7 @@ fun main() {
     TradeController(
         WebSocketProvider(listOf(coinbase, kraken, bitstamp, binance), myPairs),
         ArbiTradeFinderFacade(),
-        SpreadThresholdSelector(0.0035),
+        SpreadThresholdSelector(0.0030),
         CsvLogger(File("LOG.csv"), 500),
         myPairs
     ).runUntil { false }
