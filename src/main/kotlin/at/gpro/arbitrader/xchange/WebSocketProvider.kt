@@ -24,6 +24,8 @@ class WebSocketProvider(
     private val orderBookConverter = OrderBookConverter()
     private val pairConverter = CurrencyPairConverter()
 
+    private var onUpdate: () -> Unit = {}
+
     init {
         subscriptions = exchanges
             .map { subscribeOrderBooks(it) }
@@ -58,6 +60,7 @@ class WebSocketProvider(
         }
 
         orderBookStore.update(orderBookConverter.convert(orderBook, exchange), currencyPair)
+        onUpdate()
     }
 
     override fun getOrderBooks(currencyPair: CurrencyPair): List<OrderBook> =
@@ -65,6 +68,8 @@ class WebSocketProvider(
             orderBookStore.getBooksFor(currencyPair)
         else
             throw IllegalArgumentException("$currencyPair not supported by this object")
+
+    override fun onUpdate(action: () -> Unit) { onUpdate = action }
 
     fun stop() {
         subscriptions.forEach(Disposable::dispose)

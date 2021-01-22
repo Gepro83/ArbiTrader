@@ -6,7 +6,7 @@ import org.knowm.xchange.instrument.Instrument
 import java.math.BigDecimal
 
 object TestUtils {
-    internal fun makeOrder(
+    fun makeOrder(
         orderType: Order.OrderType,
         amount: Int,
         price: Int

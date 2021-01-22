@@ -1,15 +1,20 @@
 package at.gpro.arbitrader.xchange
 
 import at.gpro.arbitrader.entity.CurrencyPair
+import at.gpro.arbitrader.xchange.utils.TestUtils
 import at.gpro.arbitrader.xchange.utils.XchangePair
 import info.bitrich.xchangestream.core.StreamingMarketDataService
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import io.reactivex.functions.Consumer
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.lang.IllegalArgumentException
+import org.knowm.xchange.dto.marketdata.OrderBook
+import java.util.*
 
 internal class WebSocketProviderTest {
 
@@ -51,13 +56,42 @@ internal class WebSocketProviderTest {
             .getOrderBooks(CurrencyPair.BTC_EUR)
 
         verify {
-            marketDataServiceMock.getOrderBook(org.knowm.xchange.currency.CurrencyPair.BTC_EUR)
-            marketDataServiceMock.getOrderBook(org.knowm.xchange.currency.CurrencyPair.XRP_EUR)
+            marketDataServiceMock.getOrderBook(XchangePair.BTC_EUR)
+            marketDataServiceMock.getOrderBook(XchangePair.XRP_EUR)
         }
         verify(exactly = 0) {
-            marketDataServiceMock.getOrderBook(org.knowm.xchange.currency.CurrencyPair.ETH_EUR)
+            marketDataServiceMock.getOrderBook(XchangePair.ETH_EUR)
         }
 
+    }
+
+    @Test
+    internal fun `onUpdate called when update comes`() {
+        val subscription = slot<Consumer<OrderBook>>()
+        val marketDataServiceMock = mockk<StreamingMarketDataService>(relaxed = true) {
+            every {
+                getOrderBook(XchangePair.ETH_EUR)
+            } returns mockk {
+                every { subscribe(capture(subscription)) }  returns mockk(relaxed = true)
+            }
+        }
+        val exchangeMock = mockk<WebSocketExchange>(relaxed = true) {
+            every { supportedPairs} returns listOf(CurrencyPair.ETH_EUR)
+            every { streamingMarketDataService} returns marketDataServiceMock
+        }
+
+        var updateCalled = false
+        WebSocketProvider(listOf(exchangeMock), listOf(CurrencyPair.ETH_EUR)).onUpdate { updateCalled = true }
+
+        assertFalse(updateCalled)
+        subscription.captured.accept(
+            OrderBook(
+                Date(),
+                listOf(TestUtils.makeBidOrder(1, 2)),
+                listOf(TestUtils.makeAskOrder(21, 32))
+            )
+        )
+        assertTrue(updateCalled)
     }
 
     @Test

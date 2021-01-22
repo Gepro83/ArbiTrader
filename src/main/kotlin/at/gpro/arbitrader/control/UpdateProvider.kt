@@ -5,4 +5,5 @@ import at.gpro.arbitrader.entity.order.OrderBook
 
 interface UpdateProvider {
     fun getOrderBooks(currencyPair: CurrencyPair) : List<OrderBook>
+    fun onUpdate(action: () -> Unit)
 }
