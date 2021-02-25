@@ -14,10 +14,13 @@ import info.bitrich.xchangestream.bitstamp.v2.BitstampStreamingExchange
 import info.bitrich.xchangestream.coinbasepro.CoinbaseProStreamingExchange
 import info.bitrich.xchangestream.kraken.KrakenStreamingExchange
 import mu.KotlinLogging
+import org.knowm.xchange.currency.CurrencyPair
 import java.io.File
+import java.math.BigDecimal
 
 private val API_KEY_STORE = ApiKeyStore.from(File("/Users/gprohaska/Documents/crypto/ApiKeys.json"))
 private val COINBASEPRO_KEY = API_KEY_STORE?.getKey("CoinbasePro") ?: throw Exception("Could not find CoinbasePro key")
+private val COINBASEPRO_GABI_KEY = API_KEY_STORE?.getKey("CoinbaseProGabi") ?: throw Exception("Could not find CoinbasePro key")
 private val KRAKEN_KEY = API_KEY_STORE?.getKey("Kraken") ?: throw Exception("Could not find Kraken key")
 
 private val LOG = KotlinLogging.logger {}
@@ -28,21 +31,33 @@ fun main() {
     val currenctPairs = listOf(
         XchangePair.BTC_EUR,
         XchangePair.ETH_EUR,
-        XchangePair.ETH_BTC,
-        XchangePair.XRP_EUR,
-        XchangePair.XRP_BTC,
-//        XchangePair.XRP_ETH
+        XchangePair.ETH_BTC
     )
 
     val coinbase = WebSocketExchangeBuilder.buildAndConnectFrom(
         CoinbaseProStreamingExchange::class.java,
+        COINBASEPRO_GABI_KEY,
+        BigDecimal(0.0025),
+        currenctPairs
+    )!!
+
+
+//    checkForTrades(currenctPairs)
+
+}
+
+private fun checkForTrades(currenctPairs: List<CurrencyPair>) {
+    val coinbase = WebSocketExchangeBuilder.buildAndConnectFrom(
+        CoinbaseProStreamingExchange::class.java,
         COINBASEPRO_KEY,
+        BigDecimal(0.0025),
         currenctPairs
     )!!
 
     val kraken = WebSocketExchangeBuilder.buildAndConnectFrom(
         KrakenStreamingExchange::class.java,
         KRAKEN_KEY,
+        BigDecimal(0.002),
         currenctPairs
     )!!
 
@@ -62,9 +77,8 @@ fun main() {
     TradeController(
         WebSocketProvider(listOf(coinbase, kraken, bitstamp, binance), myPairs),
         ArbiTradeFinderFacade(),
-        SpreadThresholdSelector(0.0030),
-        CsvLogger(File("LOG.csv"), 500),
+        SpreadThresholdSelector(0.0040),
+        CsvLogger(File("LOG.csv"), 0),
         myPairs
     ).runUntil { false }
-
 }

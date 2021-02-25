@@ -14,6 +14,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.lang.Thread.sleep
+import java.math.BigDecimal
 
 private val LOG = KotlinLogging.logger {}
 
@@ -24,6 +25,7 @@ internal class WebSocketProviderTwoExchangesIT {
             WebSocketExchangeBuilder.buildAndConnectFrom(
                 CoinbaseProStreamingExchange::class.java,
                 COINBASEPRO_KEY,
+                BigDecimal.ZERO,
                 listOf(XchangePair.BTC_EUR, XchangePair.ETH_EUR)
             ) ?: fail("Could not build Coinbase exchange")
 
@@ -31,10 +33,14 @@ internal class WebSocketProviderTwoExchangesIT {
             WebSocketExchangeBuilder.buildAndConnectFrom(
                 KrakenStreamingExchange::class.java,
                 KRAKEN_KEY,
+                BigDecimal.ZERO,
                 listOf(XchangePair.BTC_EUR, XchangePair.ETH_EUR)
             ) ?: fail("Could not build Kraken exchange")
 
-        private val TEST_PROVIDER = WebSocketProvider(listOf(COINBASE, KRAKEN), emptyList<CurrencyPair>()) //, KRAKEN))
+        private val TEST_PROVIDER = WebSocketProvider(
+            listOf(COINBASE, KRAKEN),
+            listOf(CurrencyPair.ETH_EUR, CurrencyPair.BTC_EUR)
+        )
 
         @AfterAll
         @JvmStatic

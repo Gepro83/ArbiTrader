@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.4.10"
+    kotlin("jvm") version "1.4.30"
     idea
 }
 
@@ -26,12 +26,11 @@ dependencies {
     implementation("com.google.code.gson:gson:2.8.6")
     
     // xchange
-    implementation("org.knowm.xchange:xchange-core:5.0.4")
-    implementation("org.knowm.xchange:xchange-stream-coinbasepro:5.0.4")
-    implementation("org.knowm.xchange:xchange-stream-kraken:5.0.4")
-    implementation("org.knowm.xchange:xchange-stream-bitstamp:5.0.4")
-    implementation("org.knowm.xchange:xchange-stream-binance:5.0.4")
-    
+    implementation("org.knowm.xchange:xchange-core:5.0.6")
+    implementation("org.knowm.xchange:xchange-stream-coinbasepro:5.0.6")
+    implementation("org.knowm.xchange:xchange-stream-kraken:5.0.6")
+    implementation("org.knowm.xchange:xchange-stream-bitstamp:5.0.6")
+    implementation("org.knowm.xchange:xchange-stream-binance:5.0.6")
     
     // test
     testImplementation("org.hamcrest:hamcrest:2.2")

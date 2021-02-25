@@ -1,15 +1,16 @@
 package at.gpro.arbitrader.execute
 
-import at.gpro.arbitrader.EMPTY_TEST_EXCHANGE
 import at.gpro.arbitrader.TestUtils
-import at.gpro.arbitrader.entity.*
+import at.gpro.arbitrader.TestUtils.newTestExchange
+import at.gpro.arbitrader.entity.ArbiTrade
+import at.gpro.arbitrader.entity.CurrencyPair
+import at.gpro.arbitrader.entity.CurrencyTrade
+import at.gpro.arbitrader.entity.ExchangePrice
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.*
+import org.hamcrest.Matchers.`is`
 import org.junit.jupiter.api.AfterEach
-
 import org.junit.jupiter.api.Test
 import java.io.File
-import java.math.BigDecimal
 
 internal class CsvLoggerTest {
 
@@ -23,9 +24,9 @@ internal class CsvLoggerTest {
     @Test
     internal fun `files starts with header`() {
         CsvLogger(testLogFile, 0).executeTrades(listOf(
-            TestUtils.testExchangeTrade(1, 2, 5, CurrencyPair.BTC_EUR),
-            TestUtils.testExchangeTrade(1, 3, 3, CurrencyPair.ETH_EUR),
-            TestUtils.testExchangeTrade(1, 1, 7, CurrencyPair.BTC_EUR)
+            TestUtils.newTestExchangeTrade(1, 2, 5, CurrencyPair.BTC_EUR),
+            TestUtils.newTestExchangeTrade(1, 3, 3, CurrencyPair.ETH_EUR),
+            TestUtils.newTestExchangeTrade(1, 1, 7, CurrencyPair.BTC_EUR)
         ))
 
         assertThat(testLogFile.readLines()[0], `is`(CsvLogger.CSV_HEADER))
@@ -34,9 +35,9 @@ internal class CsvLoggerTest {
     @Test
     internal fun `file has one line per trade plus header`() {
         CsvLogger(testLogFile, 0).executeTrades(listOf(
-            TestUtils.testExchangeTrade(1, 2, 5, CurrencyPair.BTC_EUR),
-            TestUtils.testExchangeTrade(1, 3, 3, CurrencyPair.ETH_EUR),
-            TestUtils.testExchangeTrade(1, 1, 7, CurrencyPair.BTC_EUR)
+            TestUtils.newTestExchangeTrade(1, 2, 5, CurrencyPair.BTC_EUR),
+            TestUtils.newTestExchangeTrade(1, 3, 3, CurrencyPair.ETH_EUR),
+            TestUtils.newTestExchangeTrade(1, 1, 7, CurrencyPair.BTC_EUR)
         ))
 
         assertThat(testLogFile.readLines().size, `is`(4))
@@ -48,8 +49,8 @@ internal class CsvLoggerTest {
             CurrencyTrade(
                 ArbiTrade(
                     5,
-                    ExchangePrice(10, object : Exchange { override fun getName(): String = "buyExchange"}),
-                    ExchangePrice(12, object : Exchange { override fun getName(): String = "sellExchange"}),
+                    ExchangePrice(10, newTestExchange("buyExchange")),
+                    ExchangePrice(12, newTestExchange("sellExchange")),
                 ),
                 CurrencyPair.BTC_EUR
             ),
@@ -74,8 +75,8 @@ internal class CsvLoggerTest {
             CurrencyTrade(
                 ArbiTrade(
                     2,
-                    ExchangePrice(10, object : Exchange { override fun getName(): String = "buyExchange"}),
-                    ExchangePrice(12, object : Exchange { override fun getName(): String = "sellExchange"}),
+                    ExchangePrice(10, newTestExchange("buyExchange")),
+                    ExchangePrice(12, newTestExchange("sellExchange")),
                 ),
                 CurrencyPair.BTC_EUR
             ),

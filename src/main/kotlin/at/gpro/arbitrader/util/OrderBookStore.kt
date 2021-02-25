@@ -31,8 +31,11 @@ class OrderBookStore(private val clock: Clock = SystemClock()) {
         exchangeMap.values.forEach { currencyMap ->
             currencyMap[pair]?.let { orderBook ->
                 bookList.add(orderBook)
+                if(orderBook.buyOffers.isEmpty())
+                    LOG.debug { "get " + orderBook.buyOffers.size.toString() + " - " + pair }
             }
         }
+
         return bookList
     }
 
@@ -56,6 +59,8 @@ class OrderBookStore(private val clock: Clock = SystemClock()) {
 
     fun update(orderBook: OrderBook, pair: CurrencyPair) {
         synchronized(this) {
+            if (orderBook.buyOffers.isEmpty())
+                LOG.debug { "update " + orderBook.buyOffers.size.toString() + " - " + pair }
             val pairMap = exchangeMap.getOrPut(orderBook.exchange, { HashMap() })
             pairMap[pair]?.let { timerMap.remove(it) }
             pairMap[pair] = orderBook

@@ -58,8 +58,15 @@ class WebSocketProvider(
             LOG.warn { "Received null orderbook from ${exchange.getName()}" }
             return
         }
+        val orderBook1 = orderBookConverter.convert(orderBook, exchange)
 
-        orderBookStore.update(orderBookConverter.convert(orderBook, exchange), currencyPair)
+//        if (orderBook1.buyOffers.isEmpty())
+//            LOG.debug { "buyoffers empty - ${exchange.getName()} $currencyPair" }
+//        if (orderBook1.sellOffers.isEmpty())
+//            LOG.debug { "selloffery empty - ${exchange.getName()} $currencyPair" }
+//        LOG.debug { "${exchange.getName()} - ${orderBook?.asks?.size} - $currencyPair"}
+
+        orderBookStore.update(orderBook1, currencyPair)
         onUpdate()
     }
 

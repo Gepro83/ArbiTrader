@@ -11,7 +11,7 @@ import java.math.BigDecimal
 
 private val LOG = KotlinLogging.logger {}
 
-class ArbiTradeFinderFacade() : TradeFinder {
+class ArbiTradeFinderFacade : TradeFinder {
     override fun findTrades(orderBook: OrderBook, compareOderBook: OrderBook): List<ArbiTrade> =
         ArbiTradeFinder(orderBook, compareOderBook).findTrades()
 }

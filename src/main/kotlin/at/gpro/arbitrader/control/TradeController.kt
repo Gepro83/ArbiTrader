@@ -13,18 +13,16 @@ class TradeController(
     private val tradeExecutor: TradeExecutor,
     private val currencyPairs: List<CurrencyPair>
 ) {
+    private var isStopped: () -> Boolean = { true }
 
     fun runUntil(isStopped: () -> Boolean) {
         LOG.debug { "trade controller started" }
-        while(!isStopped())
-            runMainLoop()
+        this.isStopped = isStopped
+        updateProvider.onUpdate { onOrderBookUpdate() }
     }
 
-    private fun runMainLoop() {
-        currencyPairs.forEach {
-            checkPair(it)
-        }
-        Thread.sleep(200)
+    private fun onOrderBookUpdate() {
+        currencyPairs.forEach { checkPair(it) }
     }
 
     private fun checkPair(pair: CurrencyPair) {

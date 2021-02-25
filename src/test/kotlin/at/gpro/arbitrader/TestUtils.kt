@@ -1,13 +1,11 @@
 package at.gpro.arbitrader
 
-import at.gpro.arbitrader.entity.ArbiTrade
-import at.gpro.arbitrader.entity.CurrencyPair
-import at.gpro.arbitrader.entity.CurrencyTrade
-import at.gpro.arbitrader.entity.ExchangePrice
+import at.gpro.arbitrader.entity.*
+import java.math.BigDecimal
 
 object TestUtils {
 
-    fun testExchangeTrade(buyPrice: Int, sellPrice: Int, amount: Int, pair: CurrencyPair): CurrencyTrade =
+    fun newTestExchangeTrade(buyPrice: Int, sellPrice: Int, amount: Int, pair: CurrencyPair): CurrencyTrade =
         CurrencyTrade(
             ArbiTrade(
                 amount,
@@ -17,5 +15,9 @@ object TestUtils {
             pair
         )
 
-
+    fun newTestExchange(name: String, fee: BigDecimal = BigDecimal.ZERO): Exchange =
+        object : Exchange {
+            override fun getName(): String = name
+            override fun getFee(): BigDecimal = fee
+        }
 }

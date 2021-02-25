@@ -9,8 +9,8 @@ import at.gpro.arbitrader.entity.order.OrderBook
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal.ONE
-import java.math.BigDecimal.TEN
+import java.math.BigDecimal
+import java.math.BigDecimal.*
 
 internal class ArbiTradeFinderTest {
 
@@ -18,10 +18,12 @@ internal class ArbiTradeFinderTest {
 
         val KRAKEN = object : Exchange {
             override fun getName(): String = toString()
+            override fun getFee(): BigDecimal = ZERO
             override fun toString(): String = "Kraken"
         }
         val COINBASE = object : Exchange {
             override fun getName(): String = toString()
+            override fun getFee(): BigDecimal = ZERO
             override fun toString(): String = "Coinbase"
         }
     }
