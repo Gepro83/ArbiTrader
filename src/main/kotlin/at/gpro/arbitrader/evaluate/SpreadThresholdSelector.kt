@@ -12,7 +12,6 @@ class SpreadThresholdSelector(private val threshold: Double): TradeSelector {
         trades.filter { calcSpreadAndLog(it) > threshold }
 
     private fun calcSpreadAndLog(trade: ArbiTrade): Double =
-        SpreadCalculator.calculateSpread(trade)
-//            .also { LOG.info { "Spread: ${it * 100}% - $trade" } }
+        SpreadCalculator.calculateSpread(trade) - trade.buyPrice.exchange.getFee() - trade.sellPrice.exchange.getFee()
 }
 

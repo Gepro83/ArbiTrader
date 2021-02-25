@@ -17,11 +17,10 @@ import org.knowm.xchange.service.account.AccountService
 import org.knowm.xchange.service.marketdata.MarketDataService
 import org.knowm.xchange.service.trade.TradeService
 import si.mazi.rescu.SynchronizedValueFactory
-import java.math.BigDecimal
 
 class WebSocketExchange(
     private val xchange: StreamingExchange,
-    fee: BigDecimal,
+    fee: Double,
     val supportedPairs: List<CurrencyPair>
 ) : StreamingExchange, Exchange {
 
@@ -49,7 +48,7 @@ class WebSocketExchange(
     // Exchange
 
     override fun getName(): String = exchange.getName()
-    override fun getFee(): BigDecimal = exchange.getFee()
+    override fun getFee(): Double = exchange.getFee()
 }
 
 
@@ -58,7 +57,7 @@ class WebSocketExchangeBuilder {
         fun <T> buildAndConnectFrom(
             exchangeClass : Class<T>,
             key: ApiKey,
-            fee: BigDecimal,
+            fee: Double,
             currenctPairs : List<XchangePair>
         ) : WebSocketExchange? = _buildAndConnectFrom(exchangeClass, currenctPairs, key, fee)
 
@@ -71,7 +70,7 @@ class WebSocketExchangeBuilder {
             exchangeClass : Class<T>,
             currenctPairs : List<XchangePair>,
             key: ApiKey? = null,
-            fee: BigDecimal = BigDecimal.ZERO,
+            fee: Double = 0.0,
         ) : WebSocketExchange? {
             val productSubscription = buildProductSubscription(currenctPairs)
 

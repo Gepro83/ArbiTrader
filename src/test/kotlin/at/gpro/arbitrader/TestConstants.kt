@@ -17,13 +17,13 @@ val TWENTY = BigDecimal(20)
 
 val EMPTY_TEST_EXCHANGE = object : Exchange {
     override fun getName(): String = "TestExchange"
-    override fun getFee(): BigDecimal = BigDecimal.ZERO
+    override fun getFee(): Double = 0.0
     override fun toString(): String = "TestExchange"
 }
 
 val ANOTHER_EMPTY_TEST_EXCHANGE = object : Exchange {
     override fun getName(): String = "AnotherTestExchange"
-    override fun getFee(): BigDecimal = BigDecimal.ZERO
+    override fun getFee(): Double = 0.0
     override fun toString(): String = "AnortherTestExchange"
 }
 

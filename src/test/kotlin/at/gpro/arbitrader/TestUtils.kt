@@ -1,7 +1,6 @@
 package at.gpro.arbitrader
 
 import at.gpro.arbitrader.entity.*
-import java.math.BigDecimal
 
 object TestUtils {
 
@@ -15,9 +14,9 @@ object TestUtils {
             pair
         )
 
-    fun newTestExchange(name: String, fee: BigDecimal = BigDecimal.ZERO): Exchange =
+    fun newTestExchange(name: String, fee: Double = 0.0): Exchange =
         object : Exchange {
             override fun getName(): String = name
-            override fun getFee(): BigDecimal = fee
+            override fun getFee(): Double = fee
         }
 }

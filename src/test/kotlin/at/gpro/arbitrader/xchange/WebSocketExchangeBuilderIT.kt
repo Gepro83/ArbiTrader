@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import org.knowm.xchange.dto.marketdata.OrderBook
-import java.math.BigDecimal
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -22,7 +21,7 @@ internal class WebSocketExchangeBuilderIT {
         val exchange = WebSocketExchangeBuilder.buildAndConnectFrom(
             CoinbaseProStreamingExchange::class.java,
             COINBASEPRO_KEY,
-            BigDecimal.ZERO,
+            0.0,
             listOf(XchangePair.BTC_EUR, XchangePair.ETH_EUR)
         ) ?: fail("Coinbase should be buildable")
 

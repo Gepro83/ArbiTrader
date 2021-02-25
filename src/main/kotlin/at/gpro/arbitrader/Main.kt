@@ -16,7 +16,6 @@ import info.bitrich.xchangestream.kraken.KrakenStreamingExchange
 import mu.KotlinLogging
 import org.knowm.xchange.currency.CurrencyPair
 import java.io.File
-import java.math.BigDecimal
 
 private val API_KEY_STORE = ApiKeyStore.from(File("/Users/gprohaska/Documents/crypto/ApiKeys.json"))
 private val COINBASEPRO_KEY = API_KEY_STORE?.getKey("CoinbasePro") ?: throw Exception("Could not find CoinbasePro key")
@@ -37,7 +36,7 @@ fun main() {
     val coinbase = WebSocketExchangeBuilder.buildAndConnectFrom(
         CoinbaseProStreamingExchange::class.java,
         COINBASEPRO_GABI_KEY,
-        BigDecimal(0.0025),
+        0.0025,
         currenctPairs
     )!!
 
@@ -50,14 +49,14 @@ private fun checkForTrades(currenctPairs: List<CurrencyPair>) {
     val coinbase = WebSocketExchangeBuilder.buildAndConnectFrom(
         CoinbaseProStreamingExchange::class.java,
         COINBASEPRO_KEY,
-        BigDecimal(0.0025),
+        0.0025,
         currenctPairs
     )!!
 
     val kraken = WebSocketExchangeBuilder.buildAndConnectFrom(
         KrakenStreamingExchange::class.java,
         KRAKEN_KEY,
-        BigDecimal(0.002),
+        0.002,
         currenctPairs
     )!!
 
