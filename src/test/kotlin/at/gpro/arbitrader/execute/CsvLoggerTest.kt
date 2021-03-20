@@ -47,12 +47,12 @@ internal class CsvLoggerTest {
     internal fun `line matching trade`() {
         CsvLogger(testLogFile, 0).executeTrades(listOf(
             CurrencyTrade(
+                CurrencyPair.BTC_EUR,
                 ArbiTrade(
                     5,
                     ExchangePrice(10, newTestExchange("buyExchange")),
                     ExchangePrice(12, newTestExchange("sellExchange")),
-                ),
-                CurrencyPair.BTC_EUR
+                )
             ),
         ))
 
@@ -73,12 +73,12 @@ internal class CsvLoggerTest {
 
         CsvLogger(testLogFile, 0).executeTrades(listOf(
             CurrencyTrade(
+                CurrencyPair.BTC_EUR,
                 ArbiTrade(
                     2,
                     ExchangePrice(10, newTestExchange("buyExchange")),
                     ExchangePrice(12, newTestExchange("sellExchange")),
-                ),
-                CurrencyPair.BTC_EUR
+                )
             ),
         ))
 

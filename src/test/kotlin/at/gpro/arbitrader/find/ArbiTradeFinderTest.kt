@@ -4,6 +4,7 @@ import at.gpro.arbitrader.*
 import at.gpro.arbitrader.entity.ArbiTrade
 import at.gpro.arbitrader.entity.Exchange
 import at.gpro.arbitrader.entity.ExchangePrice
+import at.gpro.arbitrader.entity.Order
 import at.gpro.arbitrader.entity.order.Offer
 import at.gpro.arbitrader.entity.order.OrderBook
 import org.hamcrest.MatcherAssert.assertThat
@@ -19,11 +20,19 @@ internal class ArbiTradeFinderTest {
         val KRAKEN = object : Exchange {
             override fun getName(): String = toString()
             override fun getFee(): Double = 0.0
+            override fun place(order: Order) {
+                TODO("Not yet implemented")
+            }
+
             override fun toString(): String = "Kraken"
         }
         val COINBASE = object : Exchange {
             override fun getName(): String = toString()
             override fun getFee(): Double = 0.0
+            override fun place(order: Order) {
+                TODO("Not yet implemented")
+            }
+
             override fun toString(): String = "Coinbase"
         }
     }

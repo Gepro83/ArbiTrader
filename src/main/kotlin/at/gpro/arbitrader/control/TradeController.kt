@@ -43,7 +43,7 @@ class TradeController(
 
         val selectedTrades = tradeSelector.selectTrades(trades)
 
-        tradeExecutor.executeTrades(selectedTrades.map { CurrencyTrade(it, pair) })
+        tradeExecutor.executeTrades(selectedTrades.map { CurrencyTrade(pair, it) })
 
     }
 }

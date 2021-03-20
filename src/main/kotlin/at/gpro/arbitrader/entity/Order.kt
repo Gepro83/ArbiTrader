@@ -19,6 +19,19 @@ data class ExchangePrice(
 }
 
 data class CurrencyTrade(
-    val trade: ArbiTrade,
-    val pair: CurrencyPair
+    val pair: CurrencyPair,
+    val trade: ArbiTrade
 )
+
+data class Order(
+    val type: OrderType,
+    val amount: BigDecimal,
+    val pair: CurrencyPair
+) {
+    companion object {
+        fun bid(amount: BigDecimal, pair: CurrencyPair) = Order(OrderType.BID, amount, pair)
+        fun ask(amount: BigDecimal, pair: CurrencyPair) = Order(OrderType.ASK, amount, pair)
+    }
+}
+
+enum class OrderType { ASK, BID }
