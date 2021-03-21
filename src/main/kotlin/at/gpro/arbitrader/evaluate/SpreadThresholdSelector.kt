@@ -13,5 +13,6 @@ class SpreadThresholdSelector(private val threshold: Double): TradeSelector {
 
     private fun calcSpreadAndLog(trade: ArbiTrade): Double =
         SpreadCalculator.calculateSpread(trade) - trade.buyPrice.exchange.getFee() - trade.sellPrice.exchange.getFee()
+
 }
 

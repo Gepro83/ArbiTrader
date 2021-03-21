@@ -1,6 +1,7 @@
 package at.gpro.arbitrader
 
 import at.gpro.arbitrader.entity.*
+import java.math.BigDecimal
 
 object TestUtils {
 
@@ -19,6 +20,10 @@ object TestUtils {
             override fun getName(): String = name
             override fun getFee(): Double = fee
             override fun place(order: Order) {
+                TODO("Not yet implemented")
+            }
+
+            override fun getBalance(pair: Currency): BigDecimal {
                 TODO("Not yet implemented")
             }
         }

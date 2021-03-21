@@ -1,5 +1,6 @@
 package at.gpro.arbitrader
 
+import at.gpro.arbitrader.entity.Currency
 import at.gpro.arbitrader.entity.Exchange
 import at.gpro.arbitrader.entity.Order
 import at.gpro.arbitrader.security.model.ApiKeyStore
@@ -23,6 +24,10 @@ val EMPTY_TEST_EXCHANGE = object : Exchange {
         TODO("Not yet implemented")
     }
 
+    override fun getBalance(pair: Currency): BigDecimal {
+        TODO("Not yet implemented")
+    }
+
     override fun toString(): String = "TestExchange"
 }
 
@@ -30,6 +35,10 @@ val ANOTHER_EMPTY_TEST_EXCHANGE = object : Exchange {
     override fun getName(): String = "AnotherTestExchange"
     override fun getFee(): Double = 0.0
     override fun place(order: Order) {
+        TODO("Not yet implemented")
+    }
+
+    override fun getBalance(pair: Currency): BigDecimal {
         TODO("Not yet implemented")
     }
 

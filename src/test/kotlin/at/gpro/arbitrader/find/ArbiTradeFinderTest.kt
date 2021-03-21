@@ -1,17 +1,13 @@
 package at.gpro.arbitrader.find
 
 import at.gpro.arbitrader.*
-import at.gpro.arbitrader.entity.ArbiTrade
-import at.gpro.arbitrader.entity.Exchange
-import at.gpro.arbitrader.entity.ExchangePrice
-import at.gpro.arbitrader.entity.Order
+import at.gpro.arbitrader.entity.*
 import at.gpro.arbitrader.entity.order.Offer
 import at.gpro.arbitrader.entity.order.OrderBook
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal.ONE
-import java.math.BigDecimal.TEN
+import java.math.BigDecimal.*
 
 internal class ArbiTradeFinderTest {
 
@@ -20,18 +16,16 @@ internal class ArbiTradeFinderTest {
         val KRAKEN = object : Exchange {
             override fun getName(): String = toString()
             override fun getFee(): Double = 0.0
-            override fun place(order: Order) {
-                TODO("Not yet implemented")
-            }
+            override fun place(order: Order) {}
+            override fun getBalance(pair: Currency) = ZERO
 
             override fun toString(): String = "Kraken"
         }
         val COINBASE = object : Exchange {
             override fun getName(): String = toString()
             override fun getFee(): Double = 0.0
-            override fun place(order: Order) {
-                TODO("Not yet implemented")
-            }
+            override fun place(order: Order) {}
+            override fun getBalance(pair: Currency) = ZERO
 
             override fun toString(): String = "Coinbase"
         }

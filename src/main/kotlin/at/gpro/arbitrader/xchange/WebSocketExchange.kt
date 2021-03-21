@@ -1,9 +1,6 @@
 package at.gpro.arbitrader.xchange
 
-import at.gpro.arbitrader.entity.CurrencyPair
-import at.gpro.arbitrader.entity.Exchange
-import at.gpro.arbitrader.entity.Order
-import at.gpro.arbitrader.entity.OrderType
+import at.gpro.arbitrader.entity.*
 import at.gpro.arbitrader.security.model.ApiKey
 import at.gpro.arbitrader.xchange.utils.CurrencyPairConverter
 import at.gpro.arbitrader.xchange.utils.ExchangeConverter
@@ -80,6 +77,10 @@ class WebSocketExchange(
             place(pairConverter.convert(order.pair), xchangeOrderType, order.amount)
 
         }
+
+    override fun getBalance(pair: Currency): BigDecimal {
+        TODO("Not yet implemented")
+    }
 
     private fun place(
         pair: XchangePair,
