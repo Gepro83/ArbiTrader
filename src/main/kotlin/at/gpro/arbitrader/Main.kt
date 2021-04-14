@@ -19,7 +19,7 @@ import java.io.File
 
 private val API_KEY_STORE = ApiKeyStore.from(File("/Users/gprohaska/Documents/crypto/ApiKeys.json"))
 private val COINBASEPRO_KEY = API_KEY_STORE?.getKey("CoinbasePro") ?: throw Exception("Could not find CoinbasePro key")
-private val COINBASEPRO_GABI_KEY = API_KEY_STORE?.getKey("CoinbaseProGabi") ?: throw Exception("Could not find CoinbasePro key")
+private val BINANCE_KEY = API_KEY_STORE?.getKey("Binance") ?: throw Exception("Could not find Binance key")
 private val KRAKEN_KEY = API_KEY_STORE?.getKey("Kraken") ?: throw Exception("Could not find Kraken key")
 
 private val LOG = KotlinLogging.logger {}
@@ -33,9 +33,9 @@ fun main() {
         XchangePair.ETH_BTC
     )
 
-    val coinbase = WebSocketExchangeBuilder.buildAndConnectFrom(
-        CoinbaseProStreamingExchange::class.java,
-        COINBASEPRO_GABI_KEY,
+    val binance = WebSocketExchangeBuilder.buildAndConnectFrom(
+        BinanceStreamingExchange::class.java,
+        BINANCE_KEY,
         0.0025,
         currenctPairs
     )!!

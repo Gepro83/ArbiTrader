@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.4.30"
+    id("com.github.johnrengelman.shadow") version "5.1.0"
     idea
 }
 
@@ -39,12 +40,18 @@ dependencies {
     testImplementation("io.mockk:mockk:1.10.2")
 }
 
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "at.gpro.arbitrader.MainKt"
+    }
+}
+
 val compileKotlin: KotlinCompile by tasks
 val compileTestKotlin: KotlinCompile by tasks
 
 compileKotlin.kotlinOptions {
-    jvmTarget = "1.8"
+    jvmTarget = "11"
 }
 compileTestKotlin.kotlinOptions {
-    jvmTarget = "1.8"
+    jvmTarget = "11"
 }
