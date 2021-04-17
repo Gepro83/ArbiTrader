@@ -1,7 +1,6 @@
 package at.gpro.arbitrader.control
 
 import at.gpro.arbitrader.entity.CurrencyPair
-import at.gpro.arbitrader.entity.CurrencyTrade
 import mu.KotlinLogging
 
 private val LOG = KotlinLogging.logger {}
@@ -41,9 +40,9 @@ class TradeController(
             trades.addAll(tradeFinder.findTrades(orderBooks[3], orderBooks[2]))
         }
 
-        val selectedTrades = tradeSelector.selectTrades(trades)
+        val selectedTrades = tradeSelector.selectTrades(pair, trades)
 
-        tradeExecutor.executeTrades(selectedTrades.map { CurrencyTrade(pair, it) })
+        tradeExecutor.executeTrades(pair, selectedTrades)
 
     }
 }

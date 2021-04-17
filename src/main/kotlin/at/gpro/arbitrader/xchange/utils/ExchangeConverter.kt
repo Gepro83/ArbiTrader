@@ -14,7 +14,7 @@ class ExchangeConverter {
                 TODO("Not yet implemented")
             }
 
-            override fun getBalance(pair: Currency): BigDecimal {
+            override fun getBalance(currency: Currency): BigDecimal {
                 TODO("Not yet implemented")
             }
 

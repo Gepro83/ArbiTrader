@@ -78,7 +78,7 @@ class WebSocketExchange(
 
         }
 
-    override fun getBalance(pair: Currency): BigDecimal {
+    override fun getBalance(currency: Currency): BigDecimal {
         TODO("Not yet implemented")
     }
 

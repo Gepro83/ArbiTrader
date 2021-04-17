@@ -9,16 +9,10 @@ class MarketExecutor : TradeExecutor {
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    override fun executeTrades(trades: List<CurrencyTrade>) {
-        val coroutines : MutableList<Deferred<Unit>> = ArrayList(trades.size * 2)
+    override fun executeTrades(pair: CurrencyPair, trades: List<ArbiTrade>) {
+        val coroutines: MutableList<Deferred<Unit>> = ArrayList(trades.size * 2)
 
-        val tradesPerPair = trades.groupBy { it.pair }
-
-        val exchangeOrders = tradesPerPair.flatMap { (pair, pairTrades) ->
-            deriveExchangeOrders(pairTrades, pair)
-        }
-
-        exchangeOrders.forEach { (exchange, order) ->
+        deriveExchangeOrders(pair, trades).forEach { (exchange, order) ->
             coroutines.add(placeAsync(order, exchange))
         }
 
@@ -28,11 +22,11 @@ class MarketExecutor : TradeExecutor {
     }
 
     private fun deriveExchangeOrders(
-        trades: List<CurrencyTrade>,
-        pair: CurrencyPair
+        pair: CurrencyPair,
+        trades: List<ArbiTrade>
     ): List<Pair<Exchange, Order>> {
-        val tradesPerSellExchange = trades.groupBy { it.trade.sellPrice.exchange }
-        val tradesPerBuyExchange = trades.groupBy { it.trade.buyPrice.exchange }
+        val tradesPerSellExchange = trades.groupBy { it.sellPrice.exchange }
+        val tradesPerBuyExchange = trades.groupBy { it.buyPrice.exchange }
 
         val orderPerSellExchange = reduceToOrder(tradesPerSellExchange, pair, OrderType.BID)
         val orderPerBuyExchange = reduceToOrder(tradesPerBuyExchange, pair, OrderType.ASK)
@@ -44,12 +38,12 @@ class MarketExecutor : TradeExecutor {
     }
 
     private fun reduceToOrder(
-        tradesPerExchange: Map<Exchange, List<CurrencyTrade>>,
+        tradesPerExchange: Map<Exchange, List<ArbiTrade>>,
         pair: CurrencyPair,
         orderType: OrderType
     ) = tradesPerExchange.mapValues { (exchange, trades) ->
         val totalAmount = trades
-            .map { it.trade.amount }
+            .map { it.amount }
             .reduce(BigDecimal::plus)
 
         Order(orderType, totalAmount, pair)

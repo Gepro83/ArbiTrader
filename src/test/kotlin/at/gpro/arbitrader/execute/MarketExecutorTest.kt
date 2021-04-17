@@ -26,7 +26,7 @@ internal class MarketExecutorTest {
             orders.add(order)
         }
 
-        override fun getBalance(pair: Currency) = BigDecimal(1000000)
+        override fun getBalance(currency: Currency) = BigDecimal(1000000)
     }
 
     private class SlowExchange(private val placeDelay: Long): Exchange {
@@ -36,7 +36,7 @@ internal class MarketExecutorTest {
             Thread.sleep(placeDelay)
         }
 
-        override fun getBalance(pair: Currency) = BigDecimal(10000000)
+        override fun getBalance(currency: Currency) = BigDecimal(10000000)
     }
 
     @Test
@@ -52,16 +52,15 @@ internal class MarketExecutorTest {
         val executor: TradeExecutor = MarketExecutor()
 
         executor.executeTrades(
+            CurrencyPair.BTC_EUR,
             listOf(
-                CurrencyTrade(
-                    CurrencyPair.BTC_EUR,
                     ArbiTrade(
                         1,
                         buyPrice = ExchangePrice(10, mockBuyExchange),
                         sellPrice = ExchangePrice(11, mockSellExchange),
                     )
                 )
-            ))
+            )
 
         assertThat(mockBuyExchange.placedOrders, contains(Order.ask(BigDecimal(1), CurrencyPair.BTC_EUR)))
         assertThat(mockSellExchange.placedOrders, contains(Order.bid(BigDecimal(1), CurrencyPair.BTC_EUR)))
@@ -74,22 +73,17 @@ internal class MarketExecutorTest {
         val before = System.currentTimeMillis()
 
         executor.executeTrades(
+            CurrencyPair.BTC_EUR,
             listOf(
-                CurrencyTrade(
-                    CurrencyPair.BTC_EUR,
-                    ArbiTrade(
-                        1,
-                        buyPrice = ExchangePrice(10, SlowExchange(300)),
-                        sellPrice = ExchangePrice(11, SlowExchange(300)),
-                    )
+                ArbiTrade(
+                    1,
+                    buyPrice = ExchangePrice(10, SlowExchange(300)),
+                    sellPrice = ExchangePrice(11, SlowExchange(300)),
                 ),
-                CurrencyTrade(
-                    CurrencyPair.BTC_EUR,
-                    ArbiTrade(
-                        1,
-                        buyPrice = ExchangePrice(10, SlowExchange(300)),
-                        sellPrice = ExchangePrice(11, SlowExchange(300)),
-                    )
+                ArbiTrade(
+                    1,
+                    buyPrice = ExchangePrice(10, SlowExchange(300)),
+                    sellPrice = ExchangePrice(11, SlowExchange(300)),
                 )
             )
         )
@@ -104,22 +98,20 @@ internal class MarketExecutorTest {
 
         assertThrows<RuntimeException> {
             MarketExecutor().executeTrades(
+                CurrencyPair.BTC_EUR,
                 listOf(
-                    CurrencyTrade(
-                        CurrencyPair.BTC_EUR,
-                        ArbiTrade(
-                            1,
-                            buyPrice = ExchangePrice(10, SlowExchange(300)),
-                            sellPrice = ExchangePrice(11, object : Exchange {
-                                override fun getName(): String = "asd"
-                                override fun getFee(): Double = 1.0
-                                override fun place(order: Order) {
-                                    Thread.sleep(50)
-                                    throw RuntimeException()
-                                }
-                                override fun getBalance(pair: Currency) = BigDecimal(100000)
-                            }),
-                        )
+                    ArbiTrade(
+                        1,
+                        buyPrice = ExchangePrice(10, SlowExchange(300)),
+                        sellPrice = ExchangePrice(11, object : Exchange {
+                            override fun getName(): String = "asd"
+                            override fun getFee(): Double = 1.0
+                            override fun place(order: Order) {
+                                Thread.sleep(50)
+                                throw RuntimeException()
+                            }
+                            override fun getBalance(currency: Currency) = BigDecimal(100000)
+                        }),
                     )
                 )
             )
@@ -133,60 +125,24 @@ internal class MarketExecutorTest {
         val buyExchange = MockExchange()
         val sellExchange = MockExchange()
 
-        val aTrade = CurrencyTrade(
-            CurrencyPair.BTC_EUR,
+        val aTrade =
             ArbiTrade(
                 BigDecimal.ONE,
                 buyPrice = ExchangePrice(100, buyExchange),
                 sellPrice = ExchangePrice(111, sellExchange),
-        ))
-        val anotherTrade = CurrencyTrade(
-            CurrencyPair.BTC_EUR,
+        )
+        val anotherTrade =
             ArbiTrade(
                 BigDecimal.TEN,
                 buyPrice = ExchangePrice(100, buyExchange),
                 sellPrice = ExchangePrice(111, sellExchange),
-        ))
+        )
 
         val executor = MarketExecutor()
-        executor.executeTrades(listOf(aTrade, anotherTrade))
+        executor.executeTrades(CurrencyPair.BTC_EUR, listOf(aTrade, anotherTrade))
 
         assertThat(buyExchange.placedOrders, contains(Order.ask(BigDecimal(11), CurrencyPair.BTC_EUR)))
         assertThat(sellExchange.placedOrders, contains(Order.bid(BigDecimal(11), CurrencyPair.BTC_EUR)))
-    }
-
-    @Test
-    internal fun `do not combine trades of differenct currencies`() {
-
-        val buyExchange = MockExchange()
-        val sellExchange = MockExchange()
-
-        val aTrade = CurrencyTrade(
-            CurrencyPair.BTC_EUR,
-            ArbiTrade(
-                BigDecimal.ONE,
-                buyPrice = ExchangePrice(100, buyExchange),
-                sellPrice = ExchangePrice(111, sellExchange),
-            ))
-        val anotherTrade = CurrencyTrade(
-            CurrencyPair.ETH_EUR,
-            ArbiTrade(
-                BigDecimal.TEN,
-                buyPrice = ExchangePrice(100, buyExchange),
-                sellPrice = ExchangePrice(111, sellExchange),
-            ))
-
-        val executor = MarketExecutor()
-        executor.executeTrades(listOf(aTrade, anotherTrade))
-
-        assertThat(buyExchange.placedOrders, containsInAnyOrder(
-            Order.ask(BigDecimal(1), CurrencyPair.BTC_EUR),
-            Order.ask(BigDecimal(10), CurrencyPair.ETH_EUR)
-        ))
-        assertThat(sellExchange.placedOrders, containsInAnyOrder(
-            Order.bid(BigDecimal(1), CurrencyPair.BTC_EUR),
-            Order.bid(BigDecimal(10), CurrencyPair.ETH_EUR)
-        ))
     }
 
     @Test
@@ -195,31 +151,28 @@ internal class MarketExecutorTest {
         val coinbase = MockExchange()
         val bitstamp = MockExchange()
 
-        val krakenToCoinbase = CurrencyTrade(
-            CurrencyPair.BTC_EUR,
+        val krakenToCoinbase =
             ArbiTrade(
                 BigDecimal.ONE,
                 buyPrice = ExchangePrice(100, kraken),
                 sellPrice = ExchangePrice(111, coinbase),
             )
-        )
-        val coinbaseToBitstamp = CurrencyTrade(
-            CurrencyPair.BTC_EUR,
+
+        val coinbaseToBitstamp =
             ArbiTrade(
                 BigDecimal.TEN,
                 buyPrice = ExchangePrice(100, coinbase),
                 sellPrice = ExchangePrice(111, bitstamp),
-            ))
-        val bitstampToKraken = CurrencyTrade(
-            CurrencyPair.BTC_EUR,
+            )
+        val bitstampToKraken =
             ArbiTrade(
                 BigDecimal(3),
                 buyPrice = ExchangePrice(100, bitstamp),
                 sellPrice = ExchangePrice(111, kraken),
-            ))
+            )
 
         val executor = MarketExecutor()
-        executor.executeTrades(listOf(krakenToCoinbase, coinbaseToBitstamp, bitstampToKraken))
+        executor.executeTrades(CurrencyPair.BTC_EUR, listOf(krakenToCoinbase, coinbaseToBitstamp, bitstampToKraken))
 
         assertThat(kraken.placedOrders, containsInAnyOrder(
             Order.ask(BigDecimal(1), CurrencyPair.BTC_EUR),
@@ -241,31 +194,28 @@ internal class MarketExecutorTest {
         val coinbase = MockExchange()
         val bitstamp = MockExchange()
 
-        val krakenToCoinbase = CurrencyTrade(
-            CurrencyPair.BTC_EUR,
+        val krakenToCoinbase =
             ArbiTrade(
                 BigDecimal.ONE,
                 buyPrice = ExchangePrice(100, kraken),
                 sellPrice = ExchangePrice(111, coinbase),
             )
-        )
-        val coinbaseToBitstamp = CurrencyTrade(
-            CurrencyPair.BTC_EUR,
+
+        val coinbaseToBitstamp =
             ArbiTrade(
                 BigDecimal.TEN,
                 buyPrice = ExchangePrice(100, bitstamp),
                 sellPrice = ExchangePrice(111, coinbase),
-            ))
-        val bitstampToKraken = CurrencyTrade(
-            CurrencyPair.BTC_EUR,
+            )
+        val bitstampToKraken =
             ArbiTrade(
                 BigDecimal(3),
                 buyPrice = ExchangePrice(100, bitstamp),
                 sellPrice = ExchangePrice(111, kraken),
-            ))
+            )
 
         val executor = MarketExecutor()
-        executor.executeTrades(listOf(krakenToCoinbase, coinbaseToBitstamp, bitstampToKraken))
+        executor.executeTrades(CurrencyPair.BTC_EUR, listOf(krakenToCoinbase, coinbaseToBitstamp, bitstampToKraken))
 
         assertThat(kraken.placedOrders, containsInAnyOrder(
             Order.ask(BigDecimal(1), CurrencyPair.BTC_EUR),

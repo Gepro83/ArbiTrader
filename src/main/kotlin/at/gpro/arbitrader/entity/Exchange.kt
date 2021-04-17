@@ -6,5 +6,5 @@ interface Exchange {
     fun getName(): String
     fun getFee(): Double
     fun place(order: Order)
-    fun getBalance(pair: Currency): BigDecimal
+    fun getBalance(currency: Currency): BigDecimal
 }

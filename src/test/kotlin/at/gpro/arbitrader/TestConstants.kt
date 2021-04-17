@@ -24,7 +24,7 @@ val EMPTY_TEST_EXCHANGE = object : Exchange {
         TODO("Not yet implemented")
     }
 
-    override fun getBalance(pair: Currency): BigDecimal {
+    override fun getBalance(currency: Currency): BigDecimal {
         TODO("Not yet implemented")
     }
 
@@ -38,7 +38,7 @@ val ANOTHER_EMPTY_TEST_EXCHANGE = object : Exchange {
         TODO("Not yet implemented")
     }
 
-    override fun getBalance(pair: Currency): BigDecimal {
+    override fun getBalance(currency: Currency): BigDecimal {
         TODO("Not yet implemented")
     }
 

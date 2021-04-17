@@ -18,11 +18,6 @@ data class ExchangePrice(
     constructor(price: Int, exchange: Exchange) : this(BigDecimal(price), exchange)
 }
 
-data class CurrencyTrade(
-    val pair: CurrencyPair,
-    val trade: ArbiTrade
-)
-
 data class Order(
     val type: OrderType,
     val amount: BigDecimal,

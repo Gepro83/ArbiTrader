@@ -17,7 +17,7 @@ internal class ArbiTradeFinderTest {
             override fun getName(): String = toString()
             override fun getFee(): Double = 0.0
             override fun place(order: Order) {}
-            override fun getBalance(pair: Currency) = ZERO
+            override fun getBalance(currency: Currency) = ZERO
 
             override fun toString(): String = "Kraken"
         }
@@ -25,7 +25,7 @@ internal class ArbiTradeFinderTest {
             override fun getName(): String = toString()
             override fun getFee(): Double = 0.0
             override fun place(order: Order) {}
-            override fun getBalance(pair: Currency) = ZERO
+            override fun getBalance(currency: Currency) = ZERO
 
             override fun toString(): String = "Coinbase"
         }

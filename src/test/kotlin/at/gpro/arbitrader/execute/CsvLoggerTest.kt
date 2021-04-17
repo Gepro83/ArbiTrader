@@ -4,7 +4,6 @@ import at.gpro.arbitrader.TestUtils
 import at.gpro.arbitrader.TestUtils.newTestExchange
 import at.gpro.arbitrader.entity.ArbiTrade
 import at.gpro.arbitrader.entity.CurrencyPair
-import at.gpro.arbitrader.entity.CurrencyTrade
 import at.gpro.arbitrader.entity.ExchangePrice
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
@@ -23,38 +22,42 @@ internal class CsvLoggerTest {
 
     @Test
     internal fun `files starts with header`() {
-        CsvLogger(testLogFile, 0).executeTrades(listOf(
-            TestUtils.newTestExchangeTrade(1, 2, 5, CurrencyPair.BTC_EUR),
-            TestUtils.newTestExchangeTrade(1, 3, 3, CurrencyPair.ETH_EUR),
-            TestUtils.newTestExchangeTrade(1, 1, 7, CurrencyPair.BTC_EUR)
-        ))
+        CsvLogger(testLogFile, 0).executeTrades(
+            CurrencyPair.BTC_EUR,
+            listOf(
+                TestUtils.newTestExchangeTrade(1, 2, 5),
+                TestUtils.newTestExchangeTrade(1, 3, 3),
+                TestUtils.newTestExchangeTrade(1, 1, 7)
+            ))
 
         assertThat(testLogFile.readLines()[0], `is`(CsvLogger.CSV_HEADER))
     }
 
     @Test
     internal fun `file has one line per trade plus header`() {
-        CsvLogger(testLogFile, 0).executeTrades(listOf(
-            TestUtils.newTestExchangeTrade(1, 2, 5, CurrencyPair.BTC_EUR),
-            TestUtils.newTestExchangeTrade(1, 3, 3, CurrencyPair.ETH_EUR),
-            TestUtils.newTestExchangeTrade(1, 1, 7, CurrencyPair.BTC_EUR)
-        ))
+        CsvLogger(testLogFile, 0).executeTrades(
+            CurrencyPair.BTC_EUR,
+            listOf(
+                TestUtils.newTestExchangeTrade(1, 2, 5),
+                TestUtils.newTestExchangeTrade(1, 3, 3),
+                TestUtils.newTestExchangeTrade(1, 1, 7)
+            ))
 
         assertThat(testLogFile.readLines().size, `is`(4))
     }
 
     @Test
     internal fun `line matching trade`() {
-        CsvLogger(testLogFile, 0).executeTrades(listOf(
-            CurrencyTrade(
-                CurrencyPair.BTC_EUR,
+        CsvLogger(testLogFile, 0).executeTrades(
+            CurrencyPair.BTC_EUR,
+            listOf(
                 ArbiTrade(
                     5,
                     ExchangePrice(10, newTestExchange("buyExchange")),
                     ExchangePrice(12, newTestExchange("sellExchange")),
                 )
-            ),
-        ))
+            )
+        )
 
         val firstTradeCells = testLogFile.readLines()[1].split(";")
         assertThat(firstTradeCells[1], `is`("0.2")) // spread
@@ -71,16 +74,16 @@ internal class CsvLoggerTest {
         testLogFile.createNewFile()
         testLogFile.writeText(CsvLogger.CSV_HEADER + System.lineSeparator() + "someline" + System.lineSeparator())
 
-        CsvLogger(testLogFile, 0).executeTrades(listOf(
-            CurrencyTrade(
-                CurrencyPair.BTC_EUR,
+        CsvLogger(testLogFile, 0).executeTrades(
+            CurrencyPair.BTC_EUR,
+            listOf(
                 ArbiTrade(
                     2,
                     ExchangePrice(10, newTestExchange("buyExchange")),
                     ExchangePrice(12, newTestExchange("sellExchange")),
                 )
-            ),
-        ))
+            )
+        )
 
         val lines = testLogFile.readLines()
 
