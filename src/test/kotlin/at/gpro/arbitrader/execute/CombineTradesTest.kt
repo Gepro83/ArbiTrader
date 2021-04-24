@@ -1,6 +1,5 @@
 package at.gpro.arbitrader.execute
 
-import at.gpro.arbitrader.control.TradeExecutor
 import at.gpro.arbitrader.entity.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
@@ -8,7 +7,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
 
-internal class MarketExecutorTest {
+internal class CombineTradesTest {
 
     private val mockBuyExchange = MockExchange()
     private val mockSellExchange = MockExchange()
@@ -49,9 +48,9 @@ internal class MarketExecutorTest {
 
     @Test
     fun `place trade at buy and sell exchange`() {
-        val executor: TradeExecutor = MarketExecutor()
+        val placer = MarketPlacer()
 
-        executor.executeTrades(
+        placer.placeTrades(
             CurrencyPair.BTC_EUR,
             listOf(
                     ArbiTrade(
@@ -68,11 +67,11 @@ internal class MarketExecutorTest {
 
     @Test
     fun `execute trades in paralell`() {
-        val executor = MarketExecutor()
+        val placer = MarketPlacer()
 
         val before = System.currentTimeMillis()
 
-        executor.executeTrades(
+        placer.placeTrades(
             CurrencyPair.BTC_EUR,
             listOf(
                 ArbiTrade(
@@ -97,7 +96,7 @@ internal class MarketExecutorTest {
     fun `exception in place trade propagating`() {
 
         assertThrows<RuntimeException> {
-            MarketExecutor().executeTrades(
+            MarketPlacer().placeTrades(
                 CurrencyPair.BTC_EUR,
                 listOf(
                     ArbiTrade(
@@ -138,8 +137,8 @@ internal class MarketExecutorTest {
                 sellPrice = ExchangePrice(111, sellExchange),
         )
 
-        val executor = MarketExecutor()
-        executor.executeTrades(CurrencyPair.BTC_EUR, listOf(aTrade, anotherTrade))
+        val placer = MarketPlacer()
+        placer.placeTrades(CurrencyPair.BTC_EUR, listOf(aTrade, anotherTrade))
 
         assertThat(buyExchange.placedOrders, contains(Order.ask(BigDecimal(11), CurrencyPair.BTC_EUR)))
         assertThat(sellExchange.placedOrders, contains(Order.bid(BigDecimal(11), CurrencyPair.BTC_EUR)))
@@ -171,8 +170,8 @@ internal class MarketExecutorTest {
                 sellPrice = ExchangePrice(111, kraken),
             )
 
-        val executor = MarketExecutor()
-        executor.executeTrades(CurrencyPair.BTC_EUR, listOf(krakenToCoinbase, coinbaseToBitstamp, bitstampToKraken))
+        val placer = MarketPlacer()
+        placer.placeTrades(CurrencyPair.BTC_EUR, listOf(krakenToCoinbase, coinbaseToBitstamp, bitstampToKraken))
 
         assertThat(kraken.placedOrders, containsInAnyOrder(
             Order.ask(BigDecimal(1), CurrencyPair.BTC_EUR),
@@ -214,8 +213,8 @@ internal class MarketExecutorTest {
                 sellPrice = ExchangePrice(111, kraken),
             )
 
-        val executor = MarketExecutor()
-        executor.executeTrades(CurrencyPair.BTC_EUR, listOf(krakenToCoinbase, coinbaseToBitstamp, bitstampToKraken))
+        val placer = MarketPlacer()
+        placer.placeTrades(CurrencyPair.BTC_EUR, listOf(krakenToCoinbase, coinbaseToBitstamp, bitstampToKraken))
 
         assertThat(kraken.placedOrders, containsInAnyOrder(
             Order.ask(BigDecimal(1), CurrencyPair.BTC_EUR),
@@ -228,4 +227,6 @@ internal class MarketExecutorTest {
             Order.ask(BigDecimal(13), CurrencyPair.BTC_EUR)
         ))
     }
+
+
 }

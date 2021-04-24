@@ -22,7 +22,7 @@ internal class CsvLoggerTest {
 
     @Test
     internal fun `files starts with header`() {
-        CsvLogger(testLogFile, 0).executeTrades(
+        CsvLogger(testLogFile, 0).placeTrades(
             CurrencyPair.BTC_EUR,
             listOf(
                 TestUtils.newTestExchangeTrade(1, 2, 5),
@@ -35,7 +35,7 @@ internal class CsvLoggerTest {
 
     @Test
     internal fun `file has one line per trade plus header`() {
-        CsvLogger(testLogFile, 0).executeTrades(
+        CsvLogger(testLogFile, 0).placeTrades(
             CurrencyPair.BTC_EUR,
             listOf(
                 TestUtils.newTestExchangeTrade(1, 2, 5),
@@ -48,7 +48,7 @@ internal class CsvLoggerTest {
 
     @Test
     internal fun `line matching trade`() {
-        CsvLogger(testLogFile, 0).executeTrades(
+        CsvLogger(testLogFile, 0).placeTrades(
             CurrencyPair.BTC_EUR,
             listOf(
                 ArbiTrade(
@@ -74,7 +74,7 @@ internal class CsvLoggerTest {
         testLogFile.createNewFile()
         testLogFile.writeText(CsvLogger.CSV_HEADER + System.lineSeparator() + "someline" + System.lineSeparator())
 
-        CsvLogger(testLogFile, 0).executeTrades(
+        CsvLogger(testLogFile, 0).placeTrades(
             CurrencyPair.BTC_EUR,
             listOf(
                 ArbiTrade(

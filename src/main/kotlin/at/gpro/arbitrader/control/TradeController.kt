@@ -8,13 +8,12 @@ private val LOG = KotlinLogging.logger {}
 class TradeController(
     private val updateProvider: UpdateProvider,
     private val tradeFinder: TradeFinder,
-    private val tradeSelector: TradeSelector,
-    private val tradeExecutor: TradeExecutor,
+    private val tradePlacer: TradePlacer,
     private val currencyPairs: List<CurrencyPair>
 ) {
     private var isStopped: () -> Boolean = { true }
 
-    fun runUntil(isStopped: () -> Boolean) {
+    fun run() {
         LOG.debug { "trade controller started" }
         this.isStopped = isStopped
         updateProvider.onUpdate { onOrderBookUpdate() }
@@ -40,9 +39,6 @@ class TradeController(
             trades.addAll(tradeFinder.findTrades(orderBooks[3], orderBooks[2]))
         }
 
-        val selectedTrades = tradeSelector.selectTrades(pair, trades)
-
-        tradeExecutor.executeTrades(pair, selectedTrades)
-
+        tradePlacer.placeTrades(pair, trades)
     }
 }

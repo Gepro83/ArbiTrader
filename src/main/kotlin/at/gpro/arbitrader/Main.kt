@@ -1,12 +1,7 @@
 package at.gpro.arbitrader
 
-import at.gpro.arbitrader.control.TradeController
-import at.gpro.arbitrader.evaluate.SpreadThresholdSelector
-import at.gpro.arbitrader.execute.CsvLogger
-import at.gpro.arbitrader.find.ArbiTradeFinderFacade
 import at.gpro.arbitrader.security.model.ApiKeyStore
 import at.gpro.arbitrader.xchange.WebSocketExchangeBuilder
-import at.gpro.arbitrader.xchange.WebSocketProvider
 import at.gpro.arbitrader.xchange.utils.CurrencyPairConverter
 import at.gpro.arbitrader.xchange.utils.XchangePair
 import info.bitrich.xchangestream.binance.BinanceStreamingExchange
@@ -73,11 +68,11 @@ private fun checkForTrades(currenctPairs: List<CurrencyPair>) {
 
     val myPairs = CurrencyPairConverter().convertToCurrencyPair(currenctPairs)
 
-    TradeController(
-        WebSocketProvider(listOf(coinbase, kraken, bitstamp, binance), myPairs),
-        ArbiTradeFinderFacade(),
-        SpreadThresholdSelector(0.0040),
-        CsvLogger(File("LOG.csv"), 0),
-        myPairs
-    ).runUntil { false }
+//    TradeController(
+//        WebSocketProvider(listOf(coinbase, kraken, bitstamp, binance), myPairs),
+//        ArbiTradeFinderFacade(),
+//        SpreadThresholdSelector(0.0040),
+//        CsvLogger(File("LOG.csv"), 0),
+//        myPairs
+//    ).runUntil { false }
 }

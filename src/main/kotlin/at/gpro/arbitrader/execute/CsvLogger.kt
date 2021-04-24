@@ -1,6 +1,6 @@
 package at.gpro.arbitrader.execute
 
-import at.gpro.arbitrader.control.TradeExecutor
+import at.gpro.arbitrader.control.TradePlacer
 import at.gpro.arbitrader.entity.ArbiTrade
 import at.gpro.arbitrader.entity.CurrencyPair
 import at.gpro.arbitrader.evaluate.SpreadCalculator
@@ -12,7 +12,7 @@ private val LOG = KotlinLogging.logger {}
 class CsvLogger(
     private val file: File,
     private val delayBetweenExecuteMS: Long
-): TradeExecutor {
+): TradePlacer {
 
     init {
         if(!file.exists()) {
@@ -25,7 +25,7 @@ class CsvLogger(
         val CSV_HEADER = "TIMESTAMP;SPREAD;AMOUNT;BUY_PRICE;BUY_EXCHANGE;SELL_PRICE;SELL_EXCHANGE;PAIR"
     }
 
-    override fun executeTrades(pair: CurrencyPair, trades: List<ArbiTrade>) {
+    override fun placeTrades(pair: CurrencyPair, trades: List<ArbiTrade>) {
         if(trades.isNotEmpty()) {
             file.appendText(trades.joinToString(System.lineSeparator()) { getLineFor(it, pair) } + System.lineSeparator())
             Thread.sleep(delayBetweenExecuteMS)

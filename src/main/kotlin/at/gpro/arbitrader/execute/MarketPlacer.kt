@@ -1,15 +1,15 @@
 package at.gpro.arbitrader.execute
 
-import at.gpro.arbitrader.control.TradeExecutor
+import at.gpro.arbitrader.control.TradePlacer
 import at.gpro.arbitrader.entity.*
 import kotlinx.coroutines.*
 import java.math.BigDecimal
 
-class MarketExecutor : TradeExecutor {
+class MarketPlacer : TradePlacer {
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    override fun executeTrades(pair: CurrencyPair, trades: List<ArbiTrade>) {
+    override fun placeTrades(pair: CurrencyPair, trades: List<ArbiTrade>) {
         val coroutines: MutableList<Deferred<Unit>> = ArrayList(trades.size * 2)
 
         deriveExchangeOrders(pair, trades).forEach { (exchange, order) ->
