@@ -1,8 +1,8 @@
 package at.gpro.arbitrader.entity
 
 enum class CurrencyPair(
-    val buyCurrency: Currency,
-    val sellCurrency: Currency
+    val mainCurrency: Currency,
+    val payCurrency: Currency
 ) {
     BTC_EUR(Currency.BTC, Currency.EUR),
     ETH_EUR(Currency.ETH, Currency.EUR),
@@ -13,6 +13,6 @@ enum class CurrencyPair(
     XRP_ETH(Currency.XRP, Currency.ETH)
 }
 
-enum class Currency {
-    BTC, EUR, ETH, BCH, XRP;
+enum class Currency(val scale: Int) {
+    BTC(8), EUR(2), ETH(8), BCH(8), XRP(10);
 }

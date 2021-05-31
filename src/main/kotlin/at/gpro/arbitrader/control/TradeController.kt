@@ -8,7 +8,7 @@ private val LOG = KotlinLogging.logger {}
 class TradeController(
     private val updateProvider: UpdateProvider,
     private val tradeFinder: TradeFinder,
-    private val tradeSelector: TradeSelector,
+    private val tradeEvaluator: TradeEvaluator,
     private val tradePlacer: TradePlacer,
     private val currencyPairs: List<CurrencyPair>
 ) {
@@ -40,6 +40,7 @@ class TradeController(
             trades.addAll(tradeFinder.findTrades(orderBooks[3], orderBooks[2]))
         }
 
-        tradePlacer.placeTrades(pair, trades.filter { tradeSelector.isWorthy(it) })
+
+//        tradePlacer.placeTrades(pair, trades.filter { tradeEvaluator.isWorthy(it) })
     }
 }

@@ -64,7 +64,7 @@ internal class ArbiTradeFinderTest {
         ).findTrades()
 
         assertThat(trades, contains(
-            ArbiTrade(
+            ExchangeArbiTrade(
                 amount = FIVE,
                 ExchangePrice(
                     price = THREE,
@@ -98,7 +98,7 @@ internal class ArbiTradeFinderTest {
         val trades = arbiTrader.findTrades()
 
         assertThat(trades, contains(
-            ArbiTrade(
+            ExchangeArbiTrade(
                 amount = FIVE,
                 ExchangePrice(
                     price = THREE,
@@ -128,7 +128,7 @@ internal class ArbiTradeFinderTest {
         ).findTrades()
 
         assertThat(trades, contains(
-            ArbiTrade(
+            ExchangeArbiTrade(
                 amount = FIVE,
                 ExchangePrice(
                     price = THREE,
@@ -169,7 +169,7 @@ internal class ArbiTradeFinderTest {
         ).findTrades()
 
         assertThat(trades, containsInAnyOrder(
-            ArbiTrade(
+            ExchangeArbiTrade(
                 amount = THREE,
                 ExchangePrice(
                     price = THREE,
@@ -180,7 +180,7 @@ internal class ArbiTradeFinderTest {
                     KRAKEN
                 )
             ),
-            ArbiTrade(
+            ExchangeArbiTrade(
                 amount = ONE,
                 ExchangePrice(
                     price = THREE,
@@ -221,7 +221,7 @@ internal class ArbiTradeFinderTest {
         ).findTrades()
 
         assertThat(trades, containsInAnyOrder(
-            ArbiTrade(
+            ExchangeArbiTrade(
                 amount = THREE,
                 ExchangePrice(
                     price = THREE,
@@ -232,7 +232,7 @@ internal class ArbiTradeFinderTest {
                     KRAKEN
                 )
             ),
-            ArbiTrade(
+            ExchangeArbiTrade(
                 amount = ONE,
                 ExchangePrice(
                     price = THREE,
@@ -243,7 +243,7 @@ internal class ArbiTradeFinderTest {
                     KRAKEN
                 )
             ),
-            ArbiTrade(
+            ExchangeArbiTrade(
                 amount = ONE,
                 ExchangePrice(
                     price = FOUR,
@@ -282,7 +282,7 @@ internal class ArbiTradeFinderTest {
         ).findTrades()
 
         assertThat(trades, containsInAnyOrder(
-            ArbiTrade(
+            ExchangeArbiTrade(
                 amount = THREE,
                 ExchangePrice(
                     price = SEVEN,
@@ -293,7 +293,7 @@ internal class ArbiTradeFinderTest {
                     COINBASE
                 )
             ),
-            ArbiTrade(
+            ExchangeArbiTrade(
                 amount = TWO,
                 ExchangePrice(
                     price = NINE,
@@ -332,7 +332,7 @@ internal class ArbiTradeFinderTest {
         ).findTrades()
 
         assertThat(trades, containsInAnyOrder(
-            ArbiTrade(
+            ExchangeArbiTrade(
                 amount = THREE,
                 ExchangePrice(
                     price = SEVEN,
@@ -343,7 +343,7 @@ internal class ArbiTradeFinderTest {
                     COINBASE
                 )
             ),
-            ArbiTrade(
+            ExchangeArbiTrade(
                 amount = TWO,
                 ExchangePrice(
                     price = NINE,
@@ -398,7 +398,7 @@ internal class ArbiTradeFinderTest {
         ).findTrades()
 
         assertThat(trades, contains(
-            ArbiTrade(
+            ExchangeArbiTrade(
                 amount = FIVE,
                 ExchangePrice(
                     price = THREE,
@@ -442,7 +442,7 @@ internal class ArbiTradeFinderTest {
         ).findTrades()
 
         assertThat(trades, contains(
-            ArbiTrade(
+            ExchangeArbiTrade(
                 amount = FIVE,
                 ExchangePrice(
                     price = THREE,

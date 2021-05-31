@@ -53,7 +53,7 @@ internal class CombineTradesTest {
         placer.placeTrades(
             CurrencyPair.BTC_EUR,
             listOf(
-                    ArbiTrade(
+                    ExchangeArbiTrade(
                         1,
                         buyPrice = ExchangePrice(10, mockBuyExchange),
                         sellPrice = ExchangePrice(11, mockSellExchange),
@@ -74,12 +74,12 @@ internal class CombineTradesTest {
         placer.placeTrades(
             CurrencyPair.BTC_EUR,
             listOf(
-                ArbiTrade(
+                ExchangeArbiTrade(
                     1,
                     buyPrice = ExchangePrice(10, SlowExchange(300)),
                     sellPrice = ExchangePrice(11, SlowExchange(300)),
                 ),
-                ArbiTrade(
+                ExchangeArbiTrade(
                     1,
                     buyPrice = ExchangePrice(10, SlowExchange(300)),
                     sellPrice = ExchangePrice(11, SlowExchange(300)),
@@ -99,7 +99,7 @@ internal class CombineTradesTest {
             MarketPlacer().placeTrades(
                 CurrencyPair.BTC_EUR,
                 listOf(
-                    ArbiTrade(
+                    ExchangeArbiTrade(
                         1,
                         buyPrice = ExchangePrice(10, SlowExchange(300)),
                         sellPrice = ExchangePrice(11, object : Exchange {
@@ -125,16 +125,16 @@ internal class CombineTradesTest {
         val sellExchange = MockExchange()
 
         val aTrade =
-            ArbiTrade(
+            ExchangeArbiTrade(
                 BigDecimal.ONE,
-                buyPrice = ExchangePrice(100, buyExchange),
-                sellPrice = ExchangePrice(111, sellExchange),
+                buyExchangePrice = ExchangePrice(100, buyExchange),
+                sellExchangePrice = ExchangePrice(111, sellExchange),
         )
         val anotherTrade =
-            ArbiTrade(
+            ExchangeArbiTrade(
                 BigDecimal.TEN,
-                buyPrice = ExchangePrice(100, buyExchange),
-                sellPrice = ExchangePrice(111, sellExchange),
+                buyExchangePrice = ExchangePrice(100, buyExchange),
+                sellExchangePrice = ExchangePrice(111, sellExchange),
         )
 
         val placer = MarketPlacer()
@@ -151,23 +151,23 @@ internal class CombineTradesTest {
         val bitstamp = MockExchange()
 
         val krakenToCoinbase =
-            ArbiTrade(
+            ExchangeArbiTrade(
                 BigDecimal.ONE,
-                buyPrice = ExchangePrice(100, kraken),
-                sellPrice = ExchangePrice(111, coinbase),
+                buyExchangePrice = ExchangePrice(100, kraken),
+                sellExchangePrice = ExchangePrice(111, coinbase),
             )
 
         val coinbaseToBitstamp =
-            ArbiTrade(
+            ExchangeArbiTrade(
                 BigDecimal.TEN,
-                buyPrice = ExchangePrice(100, coinbase),
-                sellPrice = ExchangePrice(111, bitstamp),
+                buyExchangePrice = ExchangePrice(100, coinbase),
+                sellExchangePrice = ExchangePrice(111, bitstamp),
             )
         val bitstampToKraken =
-            ArbiTrade(
+            ExchangeArbiTrade(
                 BigDecimal(3),
-                buyPrice = ExchangePrice(100, bitstamp),
-                sellPrice = ExchangePrice(111, kraken),
+                buyExchangePrice = ExchangePrice(100, bitstamp),
+                sellExchangePrice = ExchangePrice(111, kraken),
             )
 
         val placer = MarketPlacer()
@@ -194,23 +194,23 @@ internal class CombineTradesTest {
         val bitstamp = MockExchange()
 
         val krakenToCoinbase =
-            ArbiTrade(
+            ExchangeArbiTrade(
                 BigDecimal.ONE,
-                buyPrice = ExchangePrice(100, kraken),
-                sellPrice = ExchangePrice(111, coinbase),
+                buyExchangePrice = ExchangePrice(100, kraken),
+                sellExchangePrice = ExchangePrice(111, coinbase),
             )
 
         val coinbaseToBitstamp =
-            ArbiTrade(
+            ExchangeArbiTrade(
                 BigDecimal.TEN,
-                buyPrice = ExchangePrice(100, bitstamp),
-                sellPrice = ExchangePrice(111, coinbase),
+                buyExchangePrice = ExchangePrice(100, bitstamp),
+                sellExchangePrice = ExchangePrice(111, coinbase),
             )
         val bitstampToKraken =
-            ArbiTrade(
+            ExchangeArbiTrade(
                 BigDecimal(3),
-                buyPrice = ExchangePrice(100, bitstamp),
-                sellPrice = ExchangePrice(111, kraken),
+                buyExchangePrice = ExchangePrice(100, bitstamp),
+                sellExchangePrice = ExchangePrice(111, kraken),
             )
 
         val placer = MarketPlacer()

@@ -2,8 +2,8 @@ package at.gpro.arbitrader.execute
 
 import at.gpro.arbitrader.TestUtils
 import at.gpro.arbitrader.TestUtils.newTestExchange
-import at.gpro.arbitrader.entity.ArbiTrade
 import at.gpro.arbitrader.entity.CurrencyPair
+import at.gpro.arbitrader.entity.ExchangeArbiTrade
 import at.gpro.arbitrader.entity.ExchangePrice
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
@@ -51,7 +51,7 @@ internal class CsvLoggerTest {
         CsvLogger(testLogFile, 0).placeTrades(
             CurrencyPair.BTC_EUR,
             listOf(
-                ArbiTrade(
+                ExchangeArbiTrade(
                     5,
                     ExchangePrice(10, newTestExchange("buyExchange")),
                     ExchangePrice(12, newTestExchange("sellExchange")),
@@ -77,7 +77,7 @@ internal class CsvLoggerTest {
         CsvLogger(testLogFile, 0).placeTrades(
             CurrencyPair.BTC_EUR,
             listOf(
-                ArbiTrade(
+                ExchangeArbiTrade(
                     2,
                     ExchangePrice(10, newTestExchange("buyExchange")),
                     ExchangePrice(12, newTestExchange("sellExchange")),

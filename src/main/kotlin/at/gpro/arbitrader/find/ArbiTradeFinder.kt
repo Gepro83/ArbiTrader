@@ -1,8 +1,8 @@
 package at.gpro.arbitrader.find
 
 import at.gpro.arbitrader.control.TradeFinder
-import at.gpro.arbitrader.entity.ArbiTrade
 import at.gpro.arbitrader.entity.Exchange
+import at.gpro.arbitrader.entity.ExchangeArbiTrade
 import at.gpro.arbitrader.entity.ExchangePrice
 import at.gpro.arbitrader.entity.order.Offer
 import at.gpro.arbitrader.entity.order.OrderBook
@@ -12,7 +12,7 @@ import java.math.BigDecimal
 private val LOG = KotlinLogging.logger {}
 
 class ArbiTradeFinderFacade : TradeFinder {
-    override fun findTrades(orderBook: OrderBook, compareOderBook: OrderBook): List<ArbiTrade> =
+    override fun findTrades(orderBook: OrderBook, compareOderBook: OrderBook): List<ExchangeArbiTrade> =
         ArbiTradeFinder(orderBook, compareOderBook).findTrades()
 }
 
@@ -21,7 +21,7 @@ class ArbiTradeFinder(orderBook: OrderBook, compareOrderBook: OrderBook) {
     private val sellExchange: Exchange
     private val buyOffers : List<Offer>
     private val sellOffers : List<Offer>
-    private val arbiTrades = ArrayList<ArbiTrade>()
+    private val arbiTrades = ArrayList<ExchangeArbiTrade>()
 
     private var currentBuyPrice = BigDecimal.ZERO
     private var currentSellPrice = BigDecimal.ZERO
@@ -72,7 +72,7 @@ class ArbiTradeFinder(orderBook: OrderBook, compareOrderBook: OrderBook) {
         else
             compareOrderBook to orderBook
 
-    fun findTrades(): List<ArbiTrade> {
+    fun findTrades(): List<ExchangeArbiTrade> {
         while (currentBuyPrice > currentSellPrice) {
             val remainingBuyOfferAmount = getRemainingBuyOfferAmount()
             val remainingSellOfferAmount = getRemainingSellOfferAmount()
@@ -100,7 +100,7 @@ class ArbiTradeFinder(orderBook: OrderBook, compareOrderBook: OrderBook) {
             }
 
             arbiTrades.add(
-                ArbiTrade(
+                ExchangeArbiTrade(
                     amount,
                     ExchangePrice(
                         currentSellPrice,

@@ -4,8 +4,8 @@ import at.gpro.arbitrader.entity.*
 import java.math.BigDecimal
 
 object TestUtils {
-    fun newTestExchangeTrade(buyPrice: Int, sellPrice: Int, amount: Int): ArbiTrade =
-            ArbiTrade(
+    fun newTestExchangeTrade(buyPrice: Int, sellPrice: Int, amount: Int): ExchangeArbiTrade =
+            ExchangeArbiTrade(
                 amount,
                 ExchangePrice(buyPrice, EMPTY_TEST_EXCHANGE),
                 ExchangePrice(sellPrice, EMPTY_TEST_EXCHANGE),
