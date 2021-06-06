@@ -1,6 +1,6 @@
 package at.gpro.arbitrader.evaluate
 
-import at.gpro.arbitrader.execute.ArbiTrade
+import at.gpro.arbitrader.entity.ArbiTrade
 import java.math.BigDecimal
 import java.math.RoundingMode
 

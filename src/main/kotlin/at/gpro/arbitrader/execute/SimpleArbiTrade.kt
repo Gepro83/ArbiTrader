@@ -1,5 +1,6 @@
 package at.gpro.arbitrader.execute
 
+import at.gpro.arbitrader.entity.ArbiTrade
 import java.math.BigDecimal
 
 data class SimpleArbiTrade(
@@ -8,8 +9,3 @@ data class SimpleArbiTrade(
     override val sellPrice: BigDecimal
 ) : ArbiTrade
 
-interface ArbiTrade {
-    val amount: BigDecimal
-    val buyPrice: BigDecimal
-    val sellPrice: BigDecimal
-}

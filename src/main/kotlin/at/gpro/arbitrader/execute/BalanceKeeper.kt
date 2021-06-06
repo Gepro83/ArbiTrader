@@ -1,5 +1,6 @@
 package at.gpro.arbitrader.execute
 
+import at.gpro.arbitrader.entity.ArbiTrade
 import at.gpro.arbitrader.entity.Currency
 import at.gpro.arbitrader.entity.CurrencyPair
 import at.gpro.arbitrader.entity.Exchange
@@ -16,7 +17,8 @@ class BalanceKeeper(
         buyExchange: Exchange,
         sellExchange: Exchange,
         pair: CurrencyPair,
-        trade: ArbiTrade): BigDecimal {
+        trade: ArbiTrade
+    ): BigDecimal {
 
         val maxSellAmount = getMaxSellAmount(sellExchange, pair, trade.amount)
 

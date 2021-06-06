@@ -1,16 +1,26 @@
 package at.gpro.arbitrader.execute
 
 import at.gpro.arbitrader.entity.*
+import at.gpro.arbitrader.entity.Currency
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.*
+import org.hamcrest.Matchers.contains
+import org.hamcrest.Matchers.lessThan
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
+import java.util.*
 
 internal class CombineTradesTest {
 
     private val mockBuyExchange = MockExchange()
     private val mockSellExchange = MockExchange()
+
+    private val randomOrder : (ArbiTrade, ArbiTrade) -> Int = { _, _ ->
+        if(Random().nextBoolean())
+            1
+        else
+            -1
+    }
 
     private class MockExchange : Exchange {
 
@@ -52,14 +62,16 @@ internal class CombineTradesTest {
 
         placer.placeTrades(
             CurrencyPair.BTC_EUR,
+            mockBuyExchange,
+            mockSellExchange,
             listOf(
-                    ExchangeArbiTrade(
-                        1,
-                        buyPrice = ExchangePrice(10, mockBuyExchange),
-                        sellPrice = ExchangePrice(11, mockSellExchange),
+                    SimpleArbiTrade(
+                        amount = BigDecimal(1),
+                        buyPrice = BigDecimal(10),
+                        sellPrice = BigDecimal(11),
                     )
-                )
-            )
+            ).toSortedSet(randomOrder)
+        )
 
         assertThat(mockBuyExchange.placedOrders, contains(Order.ask(BigDecimal(1), CurrencyPair.BTC_EUR)))
         assertThat(mockSellExchange.placedOrders, contains(Order.bid(BigDecimal(1), CurrencyPair.BTC_EUR)))
@@ -73,18 +85,20 @@ internal class CombineTradesTest {
 
         placer.placeTrades(
             CurrencyPair.BTC_EUR,
+            SlowExchange(300),
+            SlowExchange(300),
             listOf(
-                ExchangeArbiTrade(
-                    1,
-                    buyPrice = ExchangePrice(10, SlowExchange(300)),
-                    sellPrice = ExchangePrice(11, SlowExchange(300)),
+                SimpleArbiTrade(
+                    amount = BigDecimal(1),
+                    buyPrice = BigDecimal(10),
+                    sellPrice = BigDecimal(11)
                 ),
-                ExchangeArbiTrade(
-                    1,
-                    buyPrice = ExchangePrice(10, SlowExchange(300)),
-                    sellPrice = ExchangePrice(11, SlowExchange(300)),
+                SimpleArbiTrade(
+                    amount = BigDecimal(1),
+                    buyPrice = BigDecimal(10),
+                    sellPrice = BigDecimal(11),
                 )
-            )
+            ).toSortedSet(randomOrder)
         )
 
         val after = System.currentTimeMillis()
@@ -98,134 +112,49 @@ internal class CombineTradesTest {
         assertThrows<RuntimeException> {
             MarketPlacer().placeTrades(
                 CurrencyPair.BTC_EUR,
+                SlowExchange(300),
+                object : Exchange {
+                    override fun getName(): String = "asd"
+                    override fun getFee(): Double = 1.0
+                    override fun place(order: Order) {
+                        Thread.sleep(50)
+                        throw RuntimeException()
+                    }
+                    override fun getBalance(currency: Currency) = BigDecimal(100000)
+                },
                 listOf(
-                    ExchangeArbiTrade(
-                        1,
-                        buyPrice = ExchangePrice(10, SlowExchange(300)),
-                        sellPrice = ExchangePrice(11, object : Exchange {
-                            override fun getName(): String = "asd"
-                            override fun getFee(): Double = 1.0
-                            override fun place(order: Order) {
-                                Thread.sleep(50)
-                                throw RuntimeException()
-                            }
-                            override fun getBalance(currency: Currency) = BigDecimal(100000)
-                        }),
+                    SimpleArbiTrade(
+                        amount = BigDecimal(1),
+                        buyPrice = BigDecimal(10),
+                        sellPrice = BigDecimal(11)
                     )
-                )
+                ).toSortedSet(randomOrder)
             )
         }
     }
 
-
     @Test
-    fun `combine trades to same exchange`() {
-
-        val buyExchange = MockExchange()
-        val sellExchange = MockExchange()
-
-        val aTrade =
-            ExchangeArbiTrade(
-                BigDecimal.ONE,
-                buyExchangePrice = ExchangePrice(100, buyExchange),
-                sellExchangePrice = ExchangePrice(111, sellExchange),
+    fun `combine trades before placing`() {
+        MarketPlacer().placeTrades(
+            CurrencyPair.BTC_EUR,
+            mockBuyExchange,
+            mockSellExchange,
+            listOf(
+                SimpleArbiTrade(
+                    amount = BigDecimal.ONE,
+                    buyPrice = BigDecimal(100),
+                    sellPrice = BigDecimal(110)
+                ),
+                SimpleArbiTrade(
+                    amount = BigDecimal.TEN,
+                    buyPrice = BigDecimal(100),
+                    sellPrice = BigDecimal(110)
+                ),
+            ).toSortedSet(randomOrder)
         )
-        val anotherTrade =
-            ExchangeArbiTrade(
-                BigDecimal.TEN,
-                buyExchangePrice = ExchangePrice(100, buyExchange),
-                sellExchangePrice = ExchangePrice(111, sellExchange),
-        )
 
-        val placer = MarketPlacer()
-        placer.placeTrades(CurrencyPair.BTC_EUR, listOf(aTrade, anotherTrade))
-
-        assertThat(buyExchange.placedOrders, contains(Order.ask(BigDecimal(11), CurrencyPair.BTC_EUR)))
-        assertThat(sellExchange.placedOrders, contains(Order.bid(BigDecimal(11), CurrencyPair.BTC_EUR)))
-    }
-
-    @Test
-    fun `do not combine trades of differenct exchanges`() {
-        val kraken = MockExchange()
-        val coinbase = MockExchange()
-        val bitstamp = MockExchange()
-
-        val krakenToCoinbase =
-            ExchangeArbiTrade(
-                BigDecimal.ONE,
-                buyExchangePrice = ExchangePrice(100, kraken),
-                sellExchangePrice = ExchangePrice(111, coinbase),
-            )
-
-        val coinbaseToBitstamp =
-            ExchangeArbiTrade(
-                BigDecimal.TEN,
-                buyExchangePrice = ExchangePrice(100, coinbase),
-                sellExchangePrice = ExchangePrice(111, bitstamp),
-            )
-        val bitstampToKraken =
-            ExchangeArbiTrade(
-                BigDecimal(3),
-                buyExchangePrice = ExchangePrice(100, bitstamp),
-                sellExchangePrice = ExchangePrice(111, kraken),
-            )
-
-        val placer = MarketPlacer()
-        placer.placeTrades(CurrencyPair.BTC_EUR, listOf(krakenToCoinbase, coinbaseToBitstamp, bitstampToKraken))
-
-        assertThat(kraken.placedOrders, containsInAnyOrder(
-            Order.ask(BigDecimal(1), CurrencyPair.BTC_EUR),
-            Order.bid(BigDecimal(3), CurrencyPair.BTC_EUR)
-        ))
-        assertThat(coinbase.placedOrders, containsInAnyOrder(
-            Order.bid(BigDecimal(1), CurrencyPair.BTC_EUR),
-            Order.ask(BigDecimal(10), CurrencyPair.BTC_EUR)
-        ))
-        assertThat(bitstamp.placedOrders, containsInAnyOrder(
-            Order.ask(BigDecimal(3), CurrencyPair.BTC_EUR),
-            Order.bid(BigDecimal(10), CurrencyPair.BTC_EUR)
-        ))
-    }
-
-    @Test
-    fun `combine trades from different arbitrades`() {
-        val kraken = MockExchange()
-        val coinbase = MockExchange()
-        val bitstamp = MockExchange()
-
-        val krakenToCoinbase =
-            ExchangeArbiTrade(
-                BigDecimal.ONE,
-                buyExchangePrice = ExchangePrice(100, kraken),
-                sellExchangePrice = ExchangePrice(111, coinbase),
-            )
-
-        val coinbaseToBitstamp =
-            ExchangeArbiTrade(
-                BigDecimal.TEN,
-                buyExchangePrice = ExchangePrice(100, bitstamp),
-                sellExchangePrice = ExchangePrice(111, coinbase),
-            )
-        val bitstampToKraken =
-            ExchangeArbiTrade(
-                BigDecimal(3),
-                buyExchangePrice = ExchangePrice(100, bitstamp),
-                sellExchangePrice = ExchangePrice(111, kraken),
-            )
-
-        val placer = MarketPlacer()
-        placer.placeTrades(CurrencyPair.BTC_EUR, listOf(krakenToCoinbase, coinbaseToBitstamp, bitstampToKraken))
-
-        assertThat(kraken.placedOrders, containsInAnyOrder(
-            Order.ask(BigDecimal(1), CurrencyPair.BTC_EUR),
-            Order.bid(BigDecimal(3), CurrencyPair.BTC_EUR)
-        ))
-        assertThat(coinbase.placedOrders, contains(
-            Order.bid(BigDecimal(11), CurrencyPair.BTC_EUR)
-        ))
-        assertThat(bitstamp.placedOrders, contains(
-            Order.ask(BigDecimal(13), CurrencyPair.BTC_EUR)
-        ))
+        assertThat(mockBuyExchange.placedOrders, contains(Order.ask(BigDecimal(11), CurrencyPair.BTC_EUR)))
+        assertThat(mockSellExchange.placedOrders, contains(Order.bid(BigDecimal(11), CurrencyPair.BTC_EUR)))
     }
 
 

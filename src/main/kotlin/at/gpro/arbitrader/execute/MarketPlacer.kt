@@ -3,42 +3,22 @@ package at.gpro.arbitrader.execute
 import at.gpro.arbitrader.control.TradePlacer
 import at.gpro.arbitrader.entity.*
 import kotlinx.coroutines.*
+import mu.KotlinLogging
 import java.math.BigDecimal
 import java.util.*
 
 class MarketPlacer(
-    val balanceKeeper: BalanceKeeper = BalanceKeeper(0.05, 0.1)
+    safePriceMargin : Double = 0.0,
+    balanceMargin : Double = 0.0
 ) : TradePlacer {
 
+    companion object {
+        private val LOG = KotlinLogging.logger {}
+    }
+
+    private val balanceKeeper = BalanceKeeper(safePriceMargin, balanceMargin)
+
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
-    fun placeTrades(pair: CurrencyPair, trades: List<ExchangeArbiTrade>) {
-        val coroutines: MutableList<Deferred<Unit>> = ArrayList(trades.size * 2)
-
-        deriveExchangeOrders(pair, trades).forEach { (exchange, order) ->
-            coroutines.add(placeAsync(order, exchange))
-        }
-
-        runBlocking {
-            coroutines.awaitAll()
-        }
-    }
-
-    private fun deriveExchangeOrders(
-        pair: CurrencyPair,
-        trades: List<ExchangeArbiTrade>
-    ): List<Pair<Exchange, Order>> {
-        val tradesPerSellExchange = trades.groupBy { it.sellExchangePrice.exchange }
-        val tradesPerBuyExchange = trades.groupBy { it.buyExchangePrice.exchange }
-
-        val orderPerSellExchange = reduceToOrder(tradesPerSellExchange, pair, OrderType.BID)
-        val orderPerBuyExchange = reduceToOrder(tradesPerBuyExchange, pair, OrderType.ASK)
-
-        return ArrayList<Pair<Exchange, Order>>().apply {
-            addAll(orderPerBuyExchange)
-            addAll(orderPerSellExchange)
-        }
-    }
 
     private fun reduceToOrder(
         tradesPerExchange: Map<Exchange, List<ExchangeArbiTrade>>,
@@ -52,7 +32,7 @@ class MarketPlacer(
         Order(orderType, totalAmount, pair)
     }.toList()
 
-    private fun placeAsync(order: Order, exchange: Exchange) =
+    private fun placeAsync(order: Order, exchange: Exchange): Deferred<Unit> =
         scope.async {
             exchange.place(order)
         }
@@ -63,5 +43,21 @@ class MarketPlacer(
         sellExchange: Exchange,
         trades: SortedSet<ArbiTrade>
     ) {
+        val coroutines: MutableList<Deferred<Unit>> = ArrayList(trades.size * 2)
+
+        val amount = calculateTotalAmount(trades)
+        LOG.debug { "Amount: $amount" }
+
+        coroutines.add(placeAsync(Order(OrderType.ASK, amount, pair), buyExchange))
+        coroutines.add(placeAsync(Order(OrderType.BID, amount, pair), sellExchange))
+
+        runBlocking {
+            coroutines.awaitAll()
+        }
+    }
+
+    private fun calculateTotalAmount(trades: SortedSet<ArbiTrade>): BigDecimal {
+        return trades.map { it.amount }
+            .reduce(BigDecimal::plus)
     }
 }

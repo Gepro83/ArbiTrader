@@ -1,6 +1,5 @@
 package at.gpro.arbitrader.entity
 
-import at.gpro.arbitrader.execute.ArbiTrade
 import java.math.BigDecimal
 
 data class ExchangeArbiTrade(
