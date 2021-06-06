@@ -5,7 +5,6 @@ import at.gpro.arbitrader.entity.*
 import kotlinx.coroutines.*
 import mu.KotlinLogging
 import java.math.BigDecimal
-import java.util.*
 
 class MarketPlacer(
     private val safePriceMargin : Double = 0.0,
@@ -22,11 +21,16 @@ class MarketPlacer(
         pair: CurrencyPair,
         buyExchange: Exchange,
         sellExchange: Exchange,
-        trades: SortedSet<ArbiTrade>
+        trades: List<ScoredArbiTrade>
     ) {
         val coroutines: MutableList<Deferred<Unit>> = ArrayList(trades.size * 2)
 
-        val amount = calculateSafeAmount(buyExchange, sellExchange, pair, trades)
+        val amount = calculateSafeAmount(
+            buyExchange,
+            sellExchange,
+            pair,
+            trades
+        )
 
         coroutines.add(placeAsync(Order(OrderType.ASK, amount, pair), buyExchange))
         coroutines.add(placeAsync(Order(OrderType.BID, amount, pair), sellExchange))
@@ -40,12 +44,12 @@ class MarketPlacer(
         buyExchange: Exchange,
         sellExchange: Exchange,
         pair: CurrencyPair,
-        trades: SortedSet<ArbiTrade>
+        trades: List<ScoredArbiTrade>
     ): BigDecimal {
         with(BalanceKeeper(safePriceMargin, balanceMargin)) {
             var safeAmount = BigDecimal.ZERO
 
-            for(trade in trades) {
+            for (trade in trades.sortedByDescending { it.score }) {
                 val currentAmount = getSafeAmount(
                     buyExchange,
                     sellExchange,

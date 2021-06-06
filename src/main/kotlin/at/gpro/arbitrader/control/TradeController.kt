@@ -40,7 +40,16 @@ class TradeController(
             trades.addAll(tradeFinder.findTrades(orderBooks[3], orderBooks[2]))
         }
 
-
-//        tradePlacer.placeTrades(pair, trades.filter { tradeEvaluator.isWorthy(it) })
+        trades
+            .filter { tradeEvaluator.isWorthy(it) }
+            .groupBy { it.buyExchangePrice.exchange to it.sellExchangePrice.exchange }
+            .forEach { (exchangePair, trades) ->
+                tradePlacer.placeTrades(
+                    pair,
+                    exchangePair.first,
+                    exchangePair.second,
+                    trades.map { tradeEvaluator.score(it) }
+                )
+            }
     }
 }

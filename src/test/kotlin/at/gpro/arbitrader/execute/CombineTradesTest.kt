@@ -1,26 +1,17 @@
 package at.gpro.arbitrader.execute
 
 import at.gpro.arbitrader.entity.*
-import at.gpro.arbitrader.entity.Currency
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.lessThan
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
-import java.util.*
 
 internal class CombineTradesTest {
 
     private val mockBuyExchange = MockExchange()
     private val mockSellExchange = MockExchange()
-
-    private val randomOrder : (ArbiTrade, ArbiTrade) -> Int = { _, _ ->
-        if(Random().nextBoolean())
-            1
-        else
-            -1
-    }
 
     private class MockExchange : Exchange {
 
@@ -48,6 +39,13 @@ internal class CombineTradesTest {
         override fun getBalance(currency: Currency) = BigDecimal(10000000)
     }
 
+    private class TestScoredTrade(
+        override val amount: BigDecimal,
+        override val buyPrice: BigDecimal,
+        override val sellPrice: BigDecimal,
+        override val score: BigDecimal
+    ) : ScoredArbiTrade
+
     @Test
     fun `MockExchange keeping placedOrders`() {
         val order = Order.ask(BigDecimal.ZERO, CurrencyPair.BTC_EUR)
@@ -65,12 +63,13 @@ internal class CombineTradesTest {
             mockBuyExchange,
             mockSellExchange,
             listOf(
-                    SimpleArbiTrade(
+                    TestScoredTrade(
+                        score = BigDecimal(1),
                         amount = BigDecimal(1),
                         buyPrice = BigDecimal(10),
                         sellPrice = BigDecimal(11),
                     )
-            ).toSortedSet(randomOrder)
+            )
         )
 
         assertThat(mockBuyExchange.placedOrders, contains(Order.ask(BigDecimal(1), CurrencyPair.BTC_EUR)))
@@ -88,17 +87,19 @@ internal class CombineTradesTest {
             SlowExchange(300),
             SlowExchange(300),
             listOf(
-                SimpleArbiTrade(
+                TestScoredTrade(
+                    score = BigDecimal(1),
                     amount = BigDecimal(1),
                     buyPrice = BigDecimal(10),
                     sellPrice = BigDecimal(11)
                 ),
-                SimpleArbiTrade(
+                TestScoredTrade(
+                    score = BigDecimal(2),
                     amount = BigDecimal(1),
                     buyPrice = BigDecimal(10),
                     sellPrice = BigDecimal(11),
                 )
-            ).toSortedSet(randomOrder)
+            )
         )
 
         val after = System.currentTimeMillis()
@@ -123,12 +124,13 @@ internal class CombineTradesTest {
                     override fun getBalance(currency: Currency) = BigDecimal(100000)
                 },
                 listOf(
-                    SimpleArbiTrade(
+                    TestScoredTrade(
+                        score = BigDecimal(1),
                         amount = BigDecimal(1),
                         buyPrice = BigDecimal(10),
                         sellPrice = BigDecimal(11)
                     )
-                ).toSortedSet(randomOrder)
+                )
             )
         }
     }
@@ -140,17 +142,19 @@ internal class CombineTradesTest {
             mockBuyExchange,
             mockSellExchange,
             listOf(
-                SimpleArbiTrade(
+                TestScoredTrade(
+                    score = BigDecimal(1),
                     amount = BigDecimal.ONE,
                     buyPrice = BigDecimal(100),
                     sellPrice = BigDecimal(110)
                 ),
-                SimpleArbiTrade(
+                TestScoredTrade(
+                    score = BigDecimal(1),
                     amount = BigDecimal.TEN,
                     buyPrice = BigDecimal(100),
                     sellPrice = BigDecimal(110)
                 ),
-            ).toSortedSet(randomOrder)
+            )
         )
 
         assertThat(mockBuyExchange.placedOrders, contains(Order.ask(BigDecimal(11), CurrencyPair.BTC_EUR)))

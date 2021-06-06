@@ -1,14 +1,13 @@
 package at.gpro.arbitrader.execute
 
 import at.gpro.arbitrader.control.TradePlacer
-import at.gpro.arbitrader.entity.ArbiTrade
 import at.gpro.arbitrader.entity.CurrencyPair
 import at.gpro.arbitrader.entity.Exchange
 import at.gpro.arbitrader.entity.ExchangeArbiTrade
+import at.gpro.arbitrader.entity.ScoredArbiTrade
 import at.gpro.arbitrader.evaluate.SpreadCalculator
 import mu.KotlinLogging
 import java.io.File
-import java.util.*
 
 private val LOG = KotlinLogging.logger {}
 
@@ -52,7 +51,7 @@ class CsvLogger(
         pair: CurrencyPair,
         buyExchange: Exchange,
         sellExchange: Exchange,
-        trades: SortedSet<ArbiTrade>
+        trades: List<ScoredArbiTrade>
     ) {
         TODO("Not yet implemented")
     }
