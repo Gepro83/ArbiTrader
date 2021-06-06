@@ -1,9 +1,6 @@
 package at.gpro.arbitrader.execute
 
-import at.gpro.arbitrader.entity.Currency
-import at.gpro.arbitrader.entity.CurrencyPair
-import at.gpro.arbitrader.entity.Exchange
-import at.gpro.arbitrader.entity.Order
+import at.gpro.arbitrader.entity.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.equalTo
@@ -32,6 +29,15 @@ class BalanceTest {
     private val mockKraken = MockExchange("Kraken")
     private val mockCoinbase = MockExchange("Coinbase")
 
+    private class SortableTrade(
+        override val amount: BigDecimal,
+        override val buyPrice: BigDecimal,
+        override val sellPrice: BigDecimal,
+        val priority: Int
+    ) : ArbiTrade, Comparable<SortableTrade> {
+        override fun compareTo(other: SortableTrade): Int = priority.compareTo(other.priority)
+    }
+
     @Test
     fun `reduce amount by applying safe margin price increase`() {
 
@@ -40,21 +46,25 @@ class BalanceTest {
         mockKraken.setBalance(50, Currency.EUR)
         mockKraken.setBalance(2, Currency.BTC)
 
-        val balanceKeeper = BalanceKeeper(
+        val marketPlacer = MarketPlacer(
             safePriceMargin = 0.05,
             balanceMargin = 0.1
         )
 
-        val amount = balanceKeeper.getSafeAmount(
+        marketPlacer.placeTrades(
             buyExchange = mockKraken,
             sellExchange = mockCoinbase,
             pair = CurrencyPair.BTC_EUR,
-            trade = SimpleArbiTrade(
+            trades = sortedSetOf(SortableTrade(
+                    priority = 1,
                     amount = BigDecimal(1),
                     buyPrice = BigDecimal(59),
                     sellPrice = BigDecimal(60)
                 )
+            )
         )
+
+        val amount = mockCoinbase.placedOrders.first().amount
 
         assertThat(amount, `is`(equalTo(
             BigDecimal(50).setScale(Currency.BTC.scale).divide(
@@ -72,21 +82,25 @@ class BalanceTest {
         mockKraken.setBalance(ceil(150 * 1.101).toInt(), Currency.EUR)
         mockKraken.setBalance(2, Currency.BTC)
 
-        val balanceKeeper = BalanceKeeper(
+        val marketPlacer = MarketPlacer(
             safePriceMargin = 0.05,
             balanceMargin = 0.1
         )
 
-        val amount = balanceKeeper.getSafeAmount(
+        marketPlacer.placeTrades(
             buyExchange = mockKraken,
             sellExchange = mockCoinbase,
             pair = CurrencyPair.BTC_EUR,
-            trade = SimpleArbiTrade(
+            trades = sortedSetOf(SortableTrade(
+                    priority = 1,
                     amount = BigDecimal(3),
                     buyPrice = BigDecimal(50),
                     sellPrice = BigDecimal(60)
                 )
+            )
         )
+
+        val amount = mockCoinbase.placedOrders.first().amount
 
         assertThat(amount, `is`(equalTo(BigDecimal(3))))
     }
@@ -100,21 +114,25 @@ class BalanceTest {
         mockKraken.setBalance(buyBalance, Currency.EUR)
         mockKraken.setBalance(2, Currency.BTC)
 
-        val balanceKeeper = BalanceKeeper(
+        val marketPlacer = MarketPlacer(
             safePriceMargin = 0.05,
             balanceMargin = 0.1
         )
 
-        val amount = balanceKeeper.getSafeAmount(
+        marketPlacer.placeTrades(
             buyExchange = mockKraken,
             sellExchange = mockCoinbase,
             pair = CurrencyPair.BTC_EUR,
-            trade = SimpleArbiTrade(
-                    amount = BigDecimal(3),
+            trades = sortedSetOf(SortableTrade(
+                    priority = 1,
+                    amount = BigDecimal(4),
                     buyPrice = BigDecimal(50),
                     sellPrice = BigDecimal(60)
                 )
+            )
         )
+
+        val amount = mockCoinbase.placedOrders.first().amount
 
         assertThat(amount, `is`(equalTo(
             BigDecimal(buyBalance).setScale(Currency.BTC.scale).divide(
@@ -132,21 +150,25 @@ class BalanceTest {
         mockKraken.setBalance(buyBalance, Currency.EUR)
         mockKraken.setBalance(2, Currency.BTC)
 
-        val balanceKeeper = BalanceKeeper(
+        val marketPlacer = MarketPlacer(
             safePriceMargin = 0.05,
             balanceMargin = 0.1
         )
 
-        val amount = balanceKeeper.getSafeAmount(
+        marketPlacer.placeTrades(
             buyExchange = mockKraken,
             sellExchange = mockCoinbase,
             pair = CurrencyPair.BTC_EUR,
-            trade = SimpleArbiTrade(
+            trades = sortedSetOf(SortableTrade(
+                    priority = 1,
                     amount = BigDecimal(5),
                     buyPrice = BigDecimal(50),
                     sellPrice = BigDecimal(60)
                 )
+            )
         )
+
+        val amount = mockCoinbase.placedOrders.first().amount
 
         assertThat(amount, `is`(equalTo(
             BigDecimal(buyBalance).setScale(Currency.BTC.scale).divide(
@@ -163,56 +185,151 @@ class BalanceTest {
         mockKraken.setBalance(300, Currency.EUR)
         mockKraken.setBalance(2, Currency.BTC)
 
-        val balanceKeeper = BalanceKeeper(
+        val marketPlacer = MarketPlacer(
             safePriceMargin = 0.05,
             balanceMargin = 0.1
         )
 
-        val amount = balanceKeeper.getSafeAmount(
+        marketPlacer.placeTrades(
             buyExchange = mockKraken,
             sellExchange = mockCoinbase,
             pair = CurrencyPair.BTC_EUR,
-            trade = SimpleArbiTrade(
+            trades = sortedSetOf(SortableTrade(
+                    priority = 1,
                     amount = BigDecimal(3),
                     buyPrice = BigDecimal(50),
                     sellPrice = BigDecimal(60)
                 )
+            )
         )
+
+        val amount = mockCoinbase.placedOrders.first().amount
 
         assertThat(amount, `is`(equalTo(BigDecimal.ONE)))
     }
 
     @Test
-    fun `consider previous reducebalance calls`() {
+    fun `multiple trades not enough sellbalance`() {
         mockCoinbase.setBalance(100, Currency.EUR)
         mockCoinbase.setBalance(5, Currency.BTC)
-        mockKraken.setBalance(300, Currency.EUR)
+        mockKraken.setBalance(30000, Currency.EUR)
         mockKraken.setBalance(2, Currency.BTC)
 
-        val balanceKeeper = BalanceKeeper(
+        MarketPlacer(
             safePriceMargin = 0.05,
             balanceMargin = 0.1
-        )
-
-        balanceKeeper.reduceBalance(mockCoinbase, BigDecimal(2), Currency.BTC)
-        balanceKeeper.reduceBalance(mockCoinbase, BigDecimal(1), Currency.BTC)
-
-        // must not influence calculations
-        balanceKeeper.reduceBalance(mockKraken, BigDecimal(1), Currency.BTC)
-        balanceKeeper.reduceBalance(mockCoinbase, BigDecimal(50), Currency.EUR)
-
-        val amount = balanceKeeper.getSafeAmount(
+        ).placeTrades(
             buyExchange = mockKraken,
             sellExchange = mockCoinbase,
             pair = CurrencyPair.BTC_EUR,
-            trade = SimpleArbiTrade(
+            trades = sortedSetOf(
+                SortableTrade(
+                    priority = 1,
                     amount = BigDecimal(3),
                     buyPrice = BigDecimal(50),
                     sellPrice = BigDecimal(60)
+                ),
+                SortableTrade(
+                    priority = 2,
+                    amount = BigDecimal(4),
+                    buyPrice = BigDecimal(50),
+                    sellPrice = BigDecimal(65)
+                )
             )
         )
 
-        assertThat(amount, `is`(equalTo(BigDecimal(2))))
+        val amount = mockCoinbase.placedOrders.first().amount
+
+        assertThat(amount, `is`(equalTo(BigDecimal(5))))
+    }
+
+
+    @Test
+    fun `calculate safe amount for each trade in order of sorting`() {
+        mockCoinbase.setBalance(100, Currency.EUR)
+        mockCoinbase.setBalance(5, Currency.BTC)
+        mockKraken.setBalance(150, Currency.EUR)
+        mockKraken.setBalance(2, Currency.BTC)
+
+        MarketPlacer(
+            safePriceMargin = 0.05,
+            balanceMargin = 0.1
+        ).placeTrades(
+            buyExchange = mockKraken,
+            sellExchange = mockCoinbase,
+            pair = CurrencyPair.BTC_EUR,
+            trades = sortedSetOf(
+                SortableTrade(
+                    priority = 1,
+                    amount = BigDecimal(1),
+                    buyPrice = BigDecimal(50),
+                    sellPrice = BigDecimal(65)
+                ),
+                SortableTrade(
+                    priority = 2,
+                    amount = BigDecimal(2),
+                    buyPrice = BigDecimal(55),
+                    sellPrice = BigDecimal(65)
+                )
+            )
+        )
+
+        val amount = mockCoinbase.placedOrders.first().amount
+
+        assertThat(amount, `is`(equalTo(
+            BigDecimal.ONE.plus( // first trade can be done without restriction
+            BigDecimal(100).setScale(Currency.BTC.scale).divide(
+                BigDecimal(55).plus(BigDecimal.valueOf(0.05).times(BigDecimal(55))),
+                RoundingMode.HALF_DOWN
+            )
+        ))))
+
+    }
+
+
+    @Test
+    fun `do not keep balance accross placeTrades() calls`() {
+        mockCoinbase.setBalance(100, Currency.EUR)
+        mockCoinbase.setBalance(5, Currency.BTC)
+        mockKraken.setBalance(150, Currency.EUR)
+        mockKraken.setBalance(2, Currency.BTC)
+
+        val marketPlacer = MarketPlacer(
+            safePriceMargin = 0.05,
+            balanceMargin = 0.1
+        )
+        marketPlacer.placeTrades(
+            buyExchange = mockKraken,
+            sellExchange = mockCoinbase,
+            pair = CurrencyPair.BTC_EUR,
+            trades = sortedSetOf(
+                SortableTrade(
+                    priority = 1,
+                    amount = BigDecimal(1),
+                    buyPrice = BigDecimal(100),
+                    sellPrice = BigDecimal(110)
+                )
+            )
+        )
+        // balance does not change in mock, so this trade should still be placed
+        marketPlacer.placeTrades(
+            buyExchange = mockKraken,
+            sellExchange = mockCoinbase,
+            pair = CurrencyPair.BTC_EUR,
+            trades = sortedSetOf(
+                SortableTrade(
+                    priority = 1,
+                    amount = BigDecimal(1),
+                    buyPrice = BigDecimal(100),
+                    sellPrice = BigDecimal(110)
+                )
+            )
+        )
+
+        val amount = mockCoinbase.placedOrders[1].amount
+
+        assertThat(amount, `is`(equalTo(BigDecimal.ONE)))
+
     }
 
 }
