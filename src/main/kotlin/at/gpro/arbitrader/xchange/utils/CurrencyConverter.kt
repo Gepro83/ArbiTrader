@@ -1,8 +1,9 @@
 package at.gpro.arbitrader.xchange.utils
 
+import at.gpro.arbitrader.entity.Currency
 import at.gpro.arbitrader.entity.CurrencyPair
 
-class CurrencyPairConverter {
+class CurrencyConverter {
     fun convert(pair: XchangePair) = when(pair) {
         XchangePair.BTC_EUR -> CurrencyPair.BTC_EUR
         XchangePair.BCH_EUR -> CurrencyPair.BCH_EUR
@@ -26,4 +27,12 @@ class CurrencyPairConverter {
 
     fun convertToCurrencyPair(pairs: List<XchangePair>) = pairs.map { convert(it) }
     fun convertToXchangePair(pairs: List<CurrencyPair>) = pairs.map { convert(it) }
+}
+
+fun Currency.toXchangeCurrency(): XchangeCurrency = when(this) {
+    Currency.BTC -> XchangeCurrency.BTC
+    Currency.EUR -> XchangeCurrency.EUR
+    Currency.ETH -> XchangeCurrency.ETH
+    Currency.BCH -> XchangeCurrency.BCH
+    Currency.XRP -> XchangeCurrency.XRP
 }

@@ -2,7 +2,7 @@ package at.gpro.arbitrader.xchange
 
 import at.gpro.arbitrader.entity.*
 import at.gpro.arbitrader.security.model.ApiKey
-import at.gpro.arbitrader.xchange.utils.CurrencyPairConverter
+import at.gpro.arbitrader.xchange.utils.CurrencyConverter
 import at.gpro.arbitrader.xchange.utils.ExchangeConverter
 import at.gpro.arbitrader.xchange.utils.XchangePair
 import info.bitrich.xchangestream.core.ProductSubscription
@@ -32,7 +32,7 @@ class WebSocketExchange(
 ) : StreamingExchange, Exchange {
 
     private val exchange = ExchangeConverter().convert(xchange, fee)
-    private val pairConverter = CurrencyPairConverter()
+    private val pairConverter = CurrencyConverter()
     private val orderValuesHelpers: Map<XchangePair, OrderValuesHelper> = supportedPairs
         .map { pairConverter.convert(it) }
         .mapNotNull { pair ->
@@ -75,24 +75,35 @@ class WebSocketExchange(
                 }
 
             place(pairConverter.convert(order.pair), xchangeOrderType, order.amount)
-
         }
 
     override fun getBalance(currency: Currency): BigDecimal {
-        TODO("Not yet implemented")
+//        xchange.streamingAccountService.getBalanceChanges(
+//
+//        )
+//        xchange.streamingTradeService.getOrderChanges(XchangePair.BTC_EUR).subscribe {
+//            it.status
+//        }
+
+        return BigDecimal.ZERO
     }
 
-    private fun place(
+    fun place(
         pair: XchangePair,
         orderType: XchangeOrderType,
         amount: BigDecimal
     ) {
+        println("hi")
         if (orderValuesHelpers[pair]?.amountUnderMinimum(amount) == true) {
             LOG.debug { "not placing - amount too low - ${getName()} - $pair - $amount" }
             return
         }
+        println("hi2")
 
-        val placeAmount = orderValuesHelpers[pair]?.adjustAmount(amount) ?: amount
+        val placeAmount = orderValuesHelpers[pair]?.adjustAmount(amount) ?: amount.also {
+            LOG.debug { "no order values helper for ${getName()}" }
+        }
+        println("hi3")
 
         val xchangeOrder = MarketOrder.Builder(orderType, pair)
             .originalAmount(placeAmount)
@@ -105,6 +116,7 @@ class WebSocketExchange(
             LOG.debug { "done - orderId: $orderId" }
         } catch (e: Exception) {
             LOG.debug { "exception during order placement: $e" }
+            e.printStackTrace()
         }
     }
 }
@@ -138,7 +150,7 @@ class WebSocketExchangeBuilder {
             val xchange = StreamingExchangeFactory.INSTANCE.createExchange(specification)
                 .apply { connect(productSubscription).blockingAwait() }
 
-            return WebSocketExchange(xchange, fee, CurrencyPairConverter().convertToCurrencyPair(currenctPairs))
+            return WebSocketExchange(xchange, fee, CurrencyConverter().convertToCurrencyPair(currenctPairs))
         }
 
 

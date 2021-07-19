@@ -5,7 +5,7 @@ import at.gpro.arbitrader.entity.CurrencyPair
 import at.gpro.arbitrader.entity.Exchange
 import at.gpro.arbitrader.entity.order.OrderBook
 import at.gpro.arbitrader.util.OrderBookStore
-import at.gpro.arbitrader.xchange.utils.CurrencyPairConverter
+import at.gpro.arbitrader.xchange.utils.CurrencyConverter
 import at.gpro.arbitrader.xchange.utils.OrderBookConverter
 import at.gpro.arbitrader.xchange.utils.XchangeOrderBook
 import io.reactivex.disposables.Disposable
@@ -22,7 +22,7 @@ class WebSocketProvider(
     private val orderBookStore = OrderBookStore()
 
     private val orderBookConverter = OrderBookConverter()
-    private val pairConverter = CurrencyPairConverter()
+    private val pairConverter = CurrencyConverter()
 
     private var onUpdate: () -> Unit = {}
 
@@ -58,15 +58,8 @@ class WebSocketProvider(
             LOG.warn { "Received null orderbook from ${exchange.getName()}" }
             return
         }
-        val orderBook1 = orderBookConverter.convert(orderBook, exchange)
 
-//        if (orderBook1.buyOffers.isEmpty())
-//            LOG.debug { "buyoffers empty - ${exchange.getName()} $currencyPair" }
-//        if (orderBook1.sellOffers.isEmpty())
-//            LOG.debug { "selloffery empty - ${exchange.getName()} $currencyPair" }
-//        LOG.debug { "${exchange.getName()} - ${orderBook?.asks?.size} - $currencyPair"}
-
-        orderBookStore.update(orderBook1, currencyPair)
+        orderBookStore.update(orderBookConverter.convert(orderBook, exchange), currencyPair)
         onUpdate()
     }
 
