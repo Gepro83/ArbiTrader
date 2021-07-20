@@ -2,9 +2,7 @@ package at.gpro.arbitrader.xchange
 
 import at.gpro.arbitrader.entity.*
 import at.gpro.arbitrader.security.model.ApiKey
-import at.gpro.arbitrader.xchange.utils.CurrencyConverter
-import at.gpro.arbitrader.xchange.utils.ExchangeConverter
-import at.gpro.arbitrader.xchange.utils.XchangePair
+import at.gpro.arbitrader.xchange.utils.*
 import info.bitrich.xchangestream.core.ProductSubscription
 import info.bitrich.xchangestream.core.StreamingExchange
 import info.bitrich.xchangestream.core.StreamingExchangeFactory
@@ -12,6 +10,7 @@ import info.bitrich.xchangestream.core.StreamingMarketDataService
 import io.reactivex.Completable
 import mu.KotlinLogging
 import org.knowm.xchange.ExchangeSpecification
+import org.knowm.xchange.dto.account.Wallet
 import org.knowm.xchange.dto.meta.ExchangeMetaData
 import org.knowm.xchange.dto.trade.MarketOrder
 import org.knowm.xchange.service.account.AccountService
@@ -20,6 +19,9 @@ import org.knowm.xchange.service.trade.TradeService
 import org.knowm.xchange.utils.OrderValuesHelper
 import si.mazi.rescu.SynchronizedValueFactory
 import java.math.BigDecimal
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 private val LOG = KotlinLogging.logger {}
 
@@ -30,6 +32,10 @@ class WebSocketExchange(
     fee: Double,
     val supportedPairs: List<CurrencyPair>
 ) : StreamingExchange, Exchange {
+
+    companion object {
+        const val ORDER_FILL_TIMEOUT_SECONDS = 3L
+    }
 
     private val exchange = ExchangeConverter().convert(xchange, fee)
     private val pairConverter = CurrencyConverter()
@@ -44,66 +50,76 @@ class WebSocketExchange(
         }
         .toMap()
 
-        // StreamingExchange
+    private var wallet: Wallet = xchange.accountService.accountInfo.wallet
 
-        override fun isAlive(): Boolean = xchange.isAlive
-        override fun connect(vararg args: ProductSubscription): Completable = xchange.connect(*args)
-        override fun getExchangeMetaData(): ExchangeMetaData  = xchange.exchangeMetaData
-        override fun getStreamingMarketDataService(): StreamingMarketDataService = xchange.streamingMarketDataService
-        override fun getAccountService(): AccountService = xchange.accountService
-        override fun disconnect(): Completable = xchange.disconnect()
-        override fun getExchangeSpecification(): ExchangeSpecification = xchange.exchangeSpecification
-        override fun remoteInit() = xchange.remoteInit()
-        override fun getExchangeSymbols(): MutableList<XchangePair> = xchange.exchangeSymbols
-        override fun getDefaultExchangeSpecification(): ExchangeSpecification = xchange.defaultExchangeSpecification
-        override fun getTradeService(): TradeService = xchange.tradeService
-        override fun getMarketDataService(): MarketDataService = xchange.marketDataService
-        override fun getNonceFactory(): SynchronizedValueFactory<Long> = xchange.nonceFactory
-        override fun applySpecification(specification: ExchangeSpecification) = xchange.applySpecification(specification)
-        override fun useCompressedMessages(compressedMessages: Boolean) = xchange.useCompressedMessages(compressedMessages)
-        override fun toString(): String = getName()
+    init {
+        supportedPairs.forEach { pair ->
+            xchange.streamingTradeService
+                .getOrderChanges(pairConverter.convert(pair))
+                .subscribe { onOrderChange(it, pair) }
+        }
+    }
 
-        // Exchange
+    private val orderLatchesMap : MutableMap<String, CountDownLatch> = ConcurrentHashMap()
 
-        override fun getName(): String = exchange.getName()
-        override fun getFee(): Double = exchange.getFee()
-        override fun place(order: Order) {
-            val xchangeOrderType =
-                when (order.type) {
-                    OrderType.BID -> XchangeOrderType.BID
-                    OrderType.ASK -> XchangeOrderType.ASK
-                }
+    private fun onOrderChange(order: XchangeOrder?, pair: CurrencyPair) {
+        LOG.entry(order, pair)
 
-            place(pairConverter.convert(order.pair), xchangeOrderType, order.amount)
+        if (order?.status == org.knowm.xchange.dto.Order.OrderStatus.FILLED) {
+            orderLatchesMap[order?.id]?.countDown()
+            orderLatchesMap.remove(order?.id)
         }
 
-    override fun getBalance(currency: Currency): BigDecimal {
-//        xchange.streamingAccountService.getBalanceChanges(
-//
-//        )
-//        xchange.streamingTradeService.getOrderChanges(XchangePair.BTC_EUR).subscribe {
-//            it.status
-//        }
-
-        return BigDecimal.ZERO
     }
+
+    // StreamingExchange
+
+    override fun isAlive(): Boolean = xchange.isAlive
+    override fun connect(vararg args: ProductSubscription): Completable = xchange.connect(*args)
+    override fun getExchangeMetaData(): ExchangeMetaData  = xchange.exchangeMetaData
+    override fun getStreamingMarketDataService(): StreamingMarketDataService = xchange.streamingMarketDataService
+    override fun getAccountService(): AccountService = xchange.accountService
+    override fun disconnect(): Completable = xchange.disconnect()
+    override fun getExchangeSpecification(): ExchangeSpecification = xchange.exchangeSpecification
+    override fun remoteInit() = xchange.remoteInit()
+    override fun getExchangeSymbols(): MutableList<XchangePair> = xchange.exchangeSymbols
+    override fun getDefaultExchangeSpecification(): ExchangeSpecification = xchange.defaultExchangeSpecification
+    override fun getTradeService(): TradeService = xchange.tradeService
+    override fun getMarketDataService(): MarketDataService = xchange.marketDataService
+    override fun getNonceFactory(): SynchronizedValueFactory<Long> = xchange.nonceFactory
+    override fun applySpecification(specification: ExchangeSpecification) = xchange.applySpecification(specification)
+    override fun useCompressedMessages(compressedMessages: Boolean) = xchange.useCompressedMessages(compressedMessages)
+    override fun toString(): String = getName()
+
+    // Exchange
+
+    override fun getName(): String = exchange.getName()
+    override fun getFee(): Double = exchange.getFee()
+    override fun place(order: Order) {
+        val xchangeOrderType =
+            when (order.type) {
+                OrderType.BID -> XchangeOrderType.BID
+                OrderType.ASK -> XchangeOrderType.ASK
+            }
+
+        place(pairConverter.convert(order.pair), xchangeOrderType, order.amount)
+    }
+
+    override fun getBalance(currency: Currency): BigDecimal = wallet.getBalance(currency.toXchangeCurrency()).available
 
     fun place(
         pair: XchangePair,
         orderType: XchangeOrderType,
         amount: BigDecimal
     ) {
-        println("hi")
         if (orderValuesHelpers[pair]?.amountUnderMinimum(amount) == true) {
             LOG.debug { "not placing - amount too low - ${getName()} - $pair - $amount" }
             return
         }
-        println("hi2")
 
         val placeAmount = orderValuesHelpers[pair]?.adjustAmount(amount) ?: amount.also {
             LOG.debug { "no order values helper for ${getName()}" }
         }
-        println("hi3")
 
         val xchangeOrder = MarketOrder.Builder(orderType, pair)
             .originalAmount(placeAmount)
@@ -113,11 +129,23 @@ class WebSocketExchange(
 
         try {
             val orderId = xchange.tradeService.placeMarketOrder(xchangeOrder)
-            LOG.debug { "done - orderId: $orderId" }
+            LOG.debug { "done - orderId: $orderId - waiting for order to fill" }
+
+            val latch = CountDownLatch(1)
+            orderLatchesMap[orderId] = latch
+            if(!latch.await(ORDER_FILL_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                LOG.warn { "Order not filled within timeout - cancelling" }
+                xchange.tradeService.cancelOrder(orderId).also { result ->
+                    LOG.debug { "order canceled: $result" }
+                }
+            }
+
         } catch (e: Exception) {
-            LOG.debug { "exception during order placement: $e" }
-            e.printStackTrace()
+            LOG.error(e) { "exception during order placement: $e" }
         }
+
+        wallet = xchange.accountService.accountInfo.wallet
+        LOG.debug { "Refreshed balance: $wallet" }
     }
 }
 

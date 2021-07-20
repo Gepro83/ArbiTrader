@@ -79,14 +79,6 @@ class WebSocketExchangeTest {
 
     }
 
-    /** blocking place
-     *      save id
-     *      wait for order to fill via straming service
-     *      with timeout of 1 SECONDS
-     *      if not filled -> cancel order
-     *      get balance blocking
-     */
-
     @Test
     internal fun `place trade blocking`() {
         val orderPlacedLatch = CountDownLatch(1)
@@ -143,7 +135,7 @@ class WebSocketExchangeTest {
     }
 
     @Test
-    internal fun `place trade blocking until currect order change with status FILLED`() {
+    internal fun `place trade blocking until correct order change with status FILLED`() {
         val orderPlacedLatch = CountDownLatch(1)
 
         runInThread {
@@ -162,7 +154,6 @@ class WebSocketExchangeTest {
 
         assertTrue(orderPlacedLatch.await(1, TimeUnit.SECONDS))
     }
-
 
 
 

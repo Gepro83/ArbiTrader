@@ -5,5 +5,5 @@ import java.util.concurrent.Executors
 
 fun runInThread(block: () -> Unit) {
     Executors.newSingleThreadExecutor().submit(block)
-    sleep(200) // some time for thread to start
+    sleep(400) // some time for thread to start
 }
