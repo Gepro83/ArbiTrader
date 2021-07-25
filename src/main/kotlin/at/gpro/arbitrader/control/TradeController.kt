@@ -12,11 +12,8 @@ class TradeController(
     private val tradePlacer: TradePlacer,
     private val currencyPairs: List<CurrencyPair>
 ) {
-    private var isStopped: () -> Boolean = { true }
-
     fun run() {
         LOG.debug { "trade controller started" }
-        this.isStopped = isStopped
         updateProvider.onUpdate { onOrderBookUpdate() }
     }
 

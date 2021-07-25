@@ -25,11 +25,14 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:1.7.29")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
     implementation("com.google.code.gson:gson:2.8.6")
+    implementation("io.ktor:ktor-client-core:1.6.1")
+    implementation("io.ktor:ktor-client-cio:1.6.1")
     
     // xchange
     implementation("org.knowm.xchange:xchange-core:5.0.9")
     implementation("org.knowm.xchange:xchange-stream-coinbasepro:5.0.9")
     implementation("org.knowm.xchange:xchange-stream-kraken:5.0.9")
+    implementation("org.knowm.xchange:xchange-stream-cexio:5.0.9")
     implementation("org.knowm.xchange:xchange-stream-bitstamp:5.0.9")
     implementation("org.knowm.xchange:xchange-stream-binance:5.0.9")
     

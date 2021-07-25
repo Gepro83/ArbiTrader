@@ -1,5 +1,6 @@
 package at.gpro.arbitrader
 
+import at.gpro.arbitrader.kraken.Kraken
 import at.gpro.arbitrader.security.model.ApiKeyStore
 import at.gpro.arbitrader.xchange.WebSocketExchange
 import at.gpro.arbitrader.xchange.WebSocketExchangeBuilder
@@ -12,13 +13,17 @@ import info.bitrich.xchangestream.kraken.KrakenStreamingExchange
 import mu.KotlinLogging
 import org.knowm.xchange.currency.Currency
 import org.knowm.xchange.currency.CurrencyPair
+import org.knowm.xchange.dto.Order
 import org.knowm.xchange.dto.account.Wallet
+import org.knowm.xchange.dto.trade.MarketOrder
 import java.io.File
+import java.math.BigDecimal
 
 private val API_KEY_STORE = ApiKeyStore.from(File("/Users/gprohaska/Documents/crypto/ApiKeys.json"))
 private val COINBASEPRO_KEY = API_KEY_STORE?.getKey("CoinbasePro") ?: throw Exception("Could not find CoinbasePro key")
 private val BINANCE_KEY = API_KEY_STORE?.getKey("Binance") ?: throw Exception("Could not find Binance key")
 private val KRAKEN_KEY = API_KEY_STORE?.getKey("Kraken") ?: throw Exception("Could not find Kraken key")
+private val CEXIO_KEY = API_KEY_STORE?.getKey("CexIO") ?: throw Exception("Could not find CexIO key")
 
 private val LOG = KotlinLogging.logger {}
 
@@ -53,8 +58,16 @@ fun main() {
     )!!
 
     LOG.info { "CONNECTED" }
+    LOG.debug { kraken.getBalance(at.gpro.arbitrader.entity.Currency.BTC) }
 
-    printbalance(kraken, listOf(CurrencyPair.ETH_EUR))
+    Kraken(KRAKEN_KEY).place(
+        MarketOrder.Builder(Order.OrderType.ASK, CurrencyPair.BTC_EUR)
+        .originalAmount(BigDecimal("0.03"))
+        .build())
+
+//    cex.place(CurrencyPair.BTC_EUR, XchangeOrderType.ASK, BigDecimal("0.05"))
+
+//    printbalance(cex, listOf(CurrencyPair.BTC_EUR))
 
 //    kraken.place(Order(OrderType.ASK, BigDecimal("0.01"), at.gpro.arbitrader.entity.CurrencyPair.BTC_EUR))
 //    kraken.place(Order(OrderType.BID, BigDecimal("0.01"), at.gpro.arbitrader.entity.CurrencyPair.ETH_EUR))

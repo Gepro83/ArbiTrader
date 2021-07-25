@@ -8,6 +8,7 @@ import info.bitrich.xchangestream.core.StreamingExchange
 import info.bitrich.xchangestream.core.StreamingExchangeFactory
 import info.bitrich.xchangestream.core.StreamingMarketDataService
 import io.reactivex.Completable
+import io.reactivex.Observable
 import mu.KotlinLogging
 import org.knowm.xchange.ExchangeSpecification
 import org.knowm.xchange.dto.account.Wallet
@@ -30,7 +31,11 @@ typealias XchangeOrderType = org.knowm.xchange.dto.Order.OrderType
 class WebSocketExchange(
     private val xchange: StreamingExchange,
     fee: Double,
-    val supportedPairs: List<CurrencyPair>
+    val supportedPairs: List<CurrencyPair>,
+    private val getOrderChanges: StreamingExchange.(XchangePair) -> Observable<XchangeOrder> = {
+        streamingTradeService.getOrderChanges(it)
+    },
+    private val place: (MarketOrder) -> String = { xchange.tradeService.placeMarketOrder(it) }
 ) : StreamingExchange, Exchange {
 
     companion object {
@@ -50,12 +55,25 @@ class WebSocketExchange(
         }
         .toMap()
 
-    private var wallet: Wallet = xchange.accountService.accountInfo.wallet
+    private var wallet = Wallet.Builder.from(emptyList()).build()
+
+    private fun updateWallet() {
+        LOG.entry()
+
+        wallet = if(xchange.accountService.accountInfo.wallets.size == 1)
+            xchange.accountService.accountInfo.wallet
+        else
+            xchange.accountService.accountInfo.wallets.entries.first().value
+
+        wallet.balances.filter { it.value.available > BigDecimal.ZERO }
+            .map { it.key to it.value.available }
+            .let { LOG.debug { "Refreshed balance: $it" } }
+    }
 
     init {
+        updateWallet()
         supportedPairs.forEach { pair ->
-            xchange.streamingTradeService
-                .getOrderChanges(pairConverter.convert(pair))
+            xchange.getOrderChanges(pairConverter.convert(pair))
                 .subscribe { onOrderChange(it, pair) }
         }
     }
@@ -128,7 +146,7 @@ class WebSocketExchange(
         LOG.debug { "Placing $orderType order at ${getName()} - $pair - $placeAmount" }
 
         try {
-            val orderId = xchange.tradeService.placeMarketOrder(xchangeOrder)
+            val orderId = place(xchangeOrder)
             LOG.debug { "done - orderId: $orderId - waiting for order to fill" }
 
             val latch = CountDownLatch(1)
@@ -144,8 +162,8 @@ class WebSocketExchange(
             LOG.error(e) { "exception during order placement: $e" }
         }
 
-        wallet = xchange.accountService.accountInfo.wallet
-        LOG.debug { "Refreshed balance: $wallet" }
+        updateWallet()
+
     }
 }
 
@@ -156,8 +174,9 @@ class WebSocketExchangeBuilder {
             exchangeClass : Class<T>,
             key: ApiKey,
             fee: Double,
-            currenctPairs : List<XchangePair>
-        ) : WebSocketExchange? = _buildAndConnectFrom(exchangeClass, currenctPairs, key, fee)
+            currenctPairs : List<XchangePair>,
+            getOrderChanges: (StreamingExchange.(XchangePair) -> Observable<XchangeOrder>)? = null
+        ) : WebSocketExchange? = _buildAndConnectFrom(exchangeClass, currenctPairs, key, fee, getOrderChanges)
 
         fun <T> buildAndConnectFrom(
             exchangeClass : Class<T>,
@@ -169,6 +188,7 @@ class WebSocketExchangeBuilder {
             currenctPairs : List<XchangePair>,
             key: ApiKey? = null,
             fee: Double = 0.0,
+            getOrderChanges: (StreamingExchange.(XchangePair) -> Observable<XchangeOrder>)? = null
         ) : WebSocketExchange? {
             val productSubscription = buildProductSubscription(currenctPairs)
 
@@ -178,7 +198,10 @@ class WebSocketExchangeBuilder {
             val xchange = StreamingExchangeFactory.INSTANCE.createExchange(specification)
                 .apply { connect(productSubscription).blockingAwait() }
 
-            return WebSocketExchange(xchange, fee, CurrencyConverter().convertToCurrencyPair(currenctPairs))
+            return if (getOrderChanges != null)
+                WebSocketExchange(xchange, fee, CurrencyConverter().convertToCurrencyPair(currenctPairs), getOrderChanges)
+            else
+                WebSocketExchange(xchange, fee, CurrencyConverter().convertToCurrencyPair(currenctPairs))
         }
 
 
@@ -193,6 +216,7 @@ class WebSocketExchangeBuilder {
         private fun ExchangeSpecification.apply(key: ApiKey) : ExchangeSpecification {
             apiKey = key.apiKey
             secretKey = key.secret
+            key.userName?.let { userName = it }
             key.specificParameter?.let {
                 setExchangeSpecificParametersItem(
                     it.key,

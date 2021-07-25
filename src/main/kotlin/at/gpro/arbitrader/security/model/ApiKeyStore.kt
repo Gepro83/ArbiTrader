@@ -4,7 +4,6 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File
 import java.lang.reflect.Type
-import java.util.*
 
 
 data class ApiKeyStore(
@@ -24,6 +23,7 @@ data class ApiKey(
     val exchange : String,
     val apiKey : String,
     val secret : String,
+    val userName : String?,
     val specificParameter : SpecificParameter?
 )
 
