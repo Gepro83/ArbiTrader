@@ -37,10 +37,7 @@ class WebSocketProvider(
             .map { subscribeOrderBookFor(exchange, it) }
 
     private fun pairsToSubscribe(exchange: WebSocketExchange): List<CurrencyPair> =
-        if (pairs.isEmpty())
-            exchange.supportedPairs
-        else
-            pairs
+        pairs.ifEmpty { exchange.supportedPairs }
 
     private fun subscribeOrderBookFor(
         exchange: WebSocketExchange,
