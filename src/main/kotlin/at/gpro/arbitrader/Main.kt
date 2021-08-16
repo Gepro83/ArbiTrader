@@ -4,6 +4,7 @@ import at.gpro.arbitrader.kraken.Kraken
 import at.gpro.arbitrader.security.model.ApiKeyStore
 import at.gpro.arbitrader.xchange.WebSocketExchangeBuilder
 import at.gpro.arbitrader.xchange.utils.CurrencyConverter
+import at.gpro.arbitrader.xchange.utils.XchangeCurrency
 import at.gpro.arbitrader.xchange.utils.XchangePair
 import info.bitrich.xchangestream.binance.BinanceStreamingExchange
 import info.bitrich.xchangestream.bitstamp.v2.BitstampStreamingExchange
@@ -15,8 +16,11 @@ import mu.KotlinLogging
 import org.knowm.xchange.currency.Currency
 import org.knowm.xchange.currency.CurrencyPair
 import org.knowm.xchange.dto.Order
+import org.knowm.xchange.dto.account.Balance
+import org.knowm.xchange.dto.account.Wallet
 import org.knowm.xchange.dto.trade.MarketOrder
 import java.io.File
+import java.math.BigDecimal
 
 private val API_KEY_STORE = ApiKeyStore.from(File("/Users/gprohaska/Documents/crypto/ApiKeys.json"))
 private val COINBASEPRO_KEY = API_KEY_STORE?.getKey("CoinbasePro") ?: throw Exception("Could not find CoinbasePro key")
@@ -33,19 +37,19 @@ fun main() {
 
     val currenctPairs = listOf(XchangePair.BTC_EUR)
 
-//    val binance = WebSocketExchangeBuilder.buildAndConnectFrom(
-//        BinanceStreamingExchange::class.java,
-//        BINANCE_KEY,
-//        0.001,
-//        currenctPairs
-//    )!!
+    val binance = WebSocketExchangeBuilder.buildAndConnectFrom(
+        BinanceStreamingExchange::class.java,
+        BINANCE_KEY,
+        0.001,
+        currenctPairs
+    )!!
 
-//    val coinbase = WebSocketExchangeBuilder.buildAndConnectFrom(
-//        CoinbaseProStreamingExchange::class.java,
-//        COINBASEPRO_KEY,
-//        0.005,
-//        currenctPairs
-//    )!!
+    val coinbase = WebSocketExchangeBuilder.buildAndConnectFrom(
+        CoinbaseProStreamingExchange::class.java,
+        COINBASEPRO_KEY,
+        0.005,
+        currenctPairs
+    )!!
 
     val selfMadeKraken = Kraken(KRAKEN_KEY)
     var subscriptions : MutableMap<CurrencyPair, Consumer<Order>> = HashMap()
@@ -72,6 +76,17 @@ fun main() {
                 subscriptions[order.instrument]?.accept(filledOrder)
             }
             orderId
+        },
+        getWallet = {
+            val actualWallet = accountService.accountInfo.wallets.entries.first().value
+            Wallet.Builder.from(
+                actualWallet.balances.values.plus(
+                    Balance(XchangeCurrency.EUR, actualWallet.balances[krakenEUR]?.available ?: BigDecimal.ZERO)
+                ).plus(
+                    Balance(XchangeCurrency.BTC, actualWallet.balances[krakenBTC]?.available ?: BigDecimal.ZERO)
+                )
+            )
+                .build()
         }
     )!!
 
@@ -80,15 +95,15 @@ fun main() {
     LOG.debug { "kraken BTC:" + kraken.getBalance(at.gpro.arbitrader.entity.Currency.BTC) }
     LOG.debug { "kraken EUR:" + kraken.getBalance(at.gpro.arbitrader.entity.Currency.EUR) }
 
-//    LOG.debug { binance.getBalance(at.gpro.arbitrader.entity.Currency.BTC) }
-//    LOG.debug { binance.getBalance(at.gpro.arbitrader.entity.Currency.EUR) }
+    LOG.debug { binance.getBalance(at.gpro.arbitrader.entity.Currency.BTC) }
+    LOG.debug { binance.getBalance(at.gpro.arbitrader.entity.Currency.EUR) }
 
-//    LOG.debug { "coinbase BTC:" + coinbase.getBalance(at.gpro.arbitrader.entity.Currency.BTC) }
-//    LOG.debug { "coinbase EUR:" + coinbase.getBalance(at.gpro.arbitrader.entity.Currency.EUR) }
+    LOG.debug { "coinbase BTC:" + coinbase.getBalance(at.gpro.arbitrader.entity.Currency.BTC) }
+    LOG.debug { "coinbase EUR:" + coinbase.getBalance(at.gpro.arbitrader.entity.Currency.EUR) }
 
 //    coinbase.place(at.gpro.arbitrader.entity.Order(
 //        OrderType.BID,
-//        BigDecimal("0.01"),
+//        BigDecimal("0.0001"),
 //        at.gpro.arbitrader.entity.CurrencyPair.BTC_EUR
 //    ))
 

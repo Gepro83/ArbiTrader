@@ -35,7 +35,13 @@ class WebSocketExchange(
     private val subscribeOrders: (XchangePair, Consumer<XchangeOrder>) -> Unit = { pair, consumer ->
         xchange.streamingTradeService.getOrderChanges(pair).subscribe(consumer)
     },
-    private val place: (MarketOrder) -> String = { xchange.tradeService.placeMarketOrder(it) }
+    private val place: (MarketOrder) -> String = { xchange.tradeService.placeMarketOrder(it) },
+    private val getWallet: StreamingExchange.() -> Wallet =  {
+        if(accountService.accountInfo.wallets.size == 1)
+            accountService.accountInfo.wallet
+        else
+            accountService.accountInfo.wallets.entries.first().value
+    }
 ) : StreamingExchange, Exchange {
 
     companion object {
@@ -60,10 +66,7 @@ class WebSocketExchange(
     private fun updateWallet() {
         LOG.debug { "${getName()} - updating wallet" }
 
-        wallet = if(xchange.accountService.accountInfo.wallets.size == 1)
-            xchange.accountService.accountInfo.wallet
-        else
-            xchange.accountService.accountInfo.wallets.entries.first().value
+        wallet = getWallet()
 
         wallet.balances.filter { it.value.available > BigDecimal.ZERO }
             .map { it.key to it.value.available }
@@ -181,9 +184,10 @@ class WebSocketExchangeBuilder {
             fee: Double,
             currenctPairs : List<XchangePair>,
             subscribeOrders: ((XchangePair, Consumer<XchangeOrder>) -> Unit)? = null,
-            placeOrder: ((MarketOrder) -> String)? = null
+            placeOrder: ((MarketOrder) -> String)? = null,
+            getWallet: (StreamingExchange.() -> Wallet)? = null
 
-        ) : WebSocketExchange? = _buildAndConnectFrom(exchangeClass, currenctPairs, key, fee, subscribeOrders, placeOrder)
+        ) : WebSocketExchange? = _buildAndConnectFrom(exchangeClass, currenctPairs, key, fee, subscribeOrders, placeOrder, getWallet)
 
         fun <T> buildAndConnectFrom(
             exchangeClass : Class<T>,
@@ -196,7 +200,8 @@ class WebSocketExchangeBuilder {
             key: ApiKey? = null,
             fee: Double = 0.0,
             subscribeOrders: ((XchangePair, Consumer<XchangeOrder>) -> Unit)? = null,
-            placeOrder: ((MarketOrder) -> String)? = null
+            placeOrder: ((MarketOrder) -> String)? = null,
+            getWallet: (StreamingExchange.() -> Wallet)? = null
         ) : WebSocketExchange? {
             val productSubscription = buildProductSubscription(currenctPairs)
 
@@ -207,10 +212,7 @@ class WebSocketExchangeBuilder {
                 .apply { connect(productSubscription).blockingAwait() }
 
             return if (subscribeOrders != null)
-                if (placeOrder != null)
-                    WebSocketExchange(xchange, fee, CurrencyConverter().convertToCurrencyPair(currenctPairs), subscribeOrders, placeOrder)
-                else
-                    WebSocketExchange(xchange, fee, CurrencyConverter().convertToCurrencyPair(currenctPairs), subscribeOrders)
+                    WebSocketExchange(xchange, fee, CurrencyConverter().convertToCurrencyPair(currenctPairs), subscribeOrders, placeOrder!!, getWallet!!)
             else
                 WebSocketExchange(xchange, fee, CurrencyConverter().convertToCurrencyPair(currenctPairs))
         }
