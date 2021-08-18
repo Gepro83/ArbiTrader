@@ -220,7 +220,7 @@ class WebSocketExchangeBuilder {
 
         private fun buildSpecification(exchangeClass: Class<*>) =
             StreamingExchangeFactory.INSTANCE
-                .createExchange(exchangeClass.name)
+                .createExchangeWithoutSpecification(exchangeClass.name)
                 .defaultExchangeSpecification
 
         private fun buildSpecification(exchangeClass: Class<*>, key: ApiKey) =

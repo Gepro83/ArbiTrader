@@ -95,20 +95,11 @@ fun main() {
     LOG.debug { "kraken BTC:" + kraken.getBalance(at.gpro.arbitrader.entity.Currency.BTC) }
     LOG.debug { "kraken EUR:" + kraken.getBalance(at.gpro.arbitrader.entity.Currency.EUR) }
 
-    LOG.debug { binance.getBalance(at.gpro.arbitrader.entity.Currency.BTC) }
-    LOG.debug { binance.getBalance(at.gpro.arbitrader.entity.Currency.EUR) }
+    LOG.debug { "binance:" + binance.getBalance(at.gpro.arbitrader.entity.Currency.BTC) }
+    LOG.debug { "binance:" + binance.getBalance(at.gpro.arbitrader.entity.Currency.EUR) }
 
     LOG.debug { "coinbase BTC:" + coinbase.getBalance(at.gpro.arbitrader.entity.Currency.BTC) }
     LOG.debug { "coinbase EUR:" + coinbase.getBalance(at.gpro.arbitrader.entity.Currency.EUR) }
-
-//    coinbase.place(at.gpro.arbitrader.entity.Order(
-//        OrderType.BID,
-//        BigDecimal("0.0001"),
-//        at.gpro.arbitrader.entity.CurrencyPair.BTC_EUR
-//    ))
-
-
-//    kraken.place(at.gpro.arbitrader.entity.Order(OrderType.ASK, BigDecimal("0.003"), at.gpro.arbitrader.entity.CurrencyPair.BTC_EUR))
 
 
 
