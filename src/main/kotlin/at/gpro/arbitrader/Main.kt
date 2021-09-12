@@ -1,5 +1,9 @@
 package at.gpro.arbitrader
 
+import at.gpro.arbitrader.control.TradeController
+import at.gpro.arbitrader.evaluate.SpreadThresholdEvaluator
+import at.gpro.arbitrader.execute.MarketPlacer
+import at.gpro.arbitrader.find.ArbiTradeFinderFacade
 import at.gpro.arbitrader.kraken.Kraken
 import at.gpro.arbitrader.security.model.ApiKeyStore
 import at.gpro.arbitrader.xchange.WebSocketExchangeBuilder
@@ -127,14 +131,14 @@ fun main() {
 //    ))
 
 //
-//    TradeController(
-//        updateProvider,
-//        ArbiTradeFinderFacade(),
-//        SpreadThresholdEvaluator(0.001),
-//        MarketPlacer(0.05, 0.1),
-////        CsvLogger(File("log.log"), 500),
-//        currenctPairs.map { CurrencyConverter().convert(it) }
-//    ).run()
+    TradeController(
+        updateProvider,
+        ArbiTradeFinderFacade(),
+        SpreadThresholdEvaluator(0.001),
+        MarketPlacer(0.05, 0.1),
+//        CsvLogger(File("log.log"), 500),
+        currenctPairs.map { CurrencyConverter().convert(it) }
+    ).run()
 
 }
 
