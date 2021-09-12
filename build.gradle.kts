@@ -22,7 +22,8 @@ dependencies {
     // general
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("io.github.microutils:kotlin-logging:1.7.9")
-    implementation("org.slf4j:slf4j-simple:1.7.29")
+    implementation("org.slf4j:slf4j-api:1.7.5")
+    implementation("org.slf4j:slf4j-log4j12:1.7.5")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
     implementation("com.google.code.gson:gson:2.8.6")
     implementation("io.ktor:ktor-client-core:1.6.1")

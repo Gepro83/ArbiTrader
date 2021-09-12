@@ -140,6 +140,8 @@ fun main() {
         currenctPairs.map { CurrencyConverter().convert(it) }
     ).run()
 
+    LOG.info { "Started!"}
+
 }
 
 
