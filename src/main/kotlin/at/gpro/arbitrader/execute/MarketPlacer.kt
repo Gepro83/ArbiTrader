@@ -32,8 +32,10 @@ class MarketPlacer(
             trades
         )
 
-        coroutines.add(placeAsync(Order(OrderType.ASK, amount, pair), buyExchange))
-        coroutines.add(placeAsync(Order(OrderType.BID, amount, pair), sellExchange))
+        if (amount > BigDecimal.ZERO) {
+            coroutines.add(placeAsync(Order(OrderType.ASK, amount, pair), buyExchange))
+            coroutines.add(placeAsync(Order(OrderType.BID, amount, pair), sellExchange))
+        }
 
         runBlocking {
             coroutines.awaitAll()
@@ -47,7 +49,7 @@ class MarketPlacer(
         trades: List<ScoredArbiTrade>
     ): BigDecimal {
         with(BalanceKeeper(safePriceMargin, balanceMargin)) {
-            var safeAmount = BigDecimal.ZERO
+            var totalAmount = BigDecimal.ZERO
 
             for (trade in trades.sortedByDescending { it.score }) {
                 val currentAmount = getSafeAmount(
@@ -57,12 +59,14 @@ class MarketPlacer(
                     trade
                 )
 
-                safeAmount += currentAmount
-                reduceBalance(buyExchange, safeAmount.times(trade.buyPrice), pair.payCurrency)
-                reduceBalance(sellExchange, safeAmount, pair.mainCurrency)
+                totalAmount += currentAmount
+                reduceBalance(buyExchange, currentAmount.times(trade.buyPrice), pair.payCurrency)
+                reduceBalance(sellExchange, currentAmount, pair.mainCurrency)
             }
 
-            return safeAmount
+            LOG.debug { "Safe amount: $totalAmount for buy at ${buyExchange.getName()} and sell at ${sellExchange.getName()}" }
+
+            return totalAmount
         }
     }
 

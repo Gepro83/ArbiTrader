@@ -12,13 +12,20 @@ class TradeController(
     private val tradePlacer: TradePlacer,
     private val currencyPairs: List<CurrencyPair>
 ) {
+    @Volatile
+    private var checking = false
+
     fun run() {
         LOG.debug { "trade controller started" }
         updateProvider.onUpdate { onOrderBookUpdate() }
     }
 
     private fun onOrderBookUpdate() {
-        currencyPairs.forEach { checkPair(it) }
+        if (!checking) {
+            checking = true
+            currencyPairs.forEach { checkPair(it) }
+            checking = false
+        }
     }
 
     private fun checkPair(pair: CurrencyPair) {
@@ -41,6 +48,9 @@ class TradeController(
             .filter { tradeEvaluator.isWorthy(it) }
             .groupBy { it.buyExchangePrice.exchange to it.sellExchangePrice.exchange }
             .forEach { (exchangePair, trades) ->
+
+                LOG.debug { "Found ${trades.size} trades ($pair): buy: ${exchangePair.first} sell: ${exchangePair.second}" }
+                LOG.debug { "Trades: $trades" }
                 tradePlacer.placeTrades(
                     pair,
                     exchangePair.first,

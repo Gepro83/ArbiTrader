@@ -1,11 +1,15 @@
 package at.gpro.arbitrader.execute
 
+import at.gpro.arbitrader.FIVE
+import at.gpro.arbitrader.SEVEN
+import at.gpro.arbitrader.TWO
 import at.gpro.arbitrader.entity.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.math.BigDecimal.TEN
 import java.math.RoundingMode
 import kotlin.math.ceil
 
@@ -327,7 +331,53 @@ class BalanceTest {
         val amount = mockCoinbase.placedOrders[1].amount
 
         assertThat(amount, `is`(equalTo(BigDecimal.ONE)))
+    }
 
+
+    @Test
+    fun `multiple trades working`() {
+        mockCoinbase.setBalance(5, Currency.BTC)
+        mockKraken.setBalance(15000, Currency.EUR)
+
+        val marketPlacer = MarketPlacer(
+            safePriceMargin = 0.0,
+            balanceMargin = 0.1
+        )
+        marketPlacer.placeTrades(
+            buyExchange = mockKraken,
+            sellExchange = mockCoinbase,
+            pair = CurrencyPair.BTC_EUR,
+            trades = listOf(
+                TestScoredTrade(
+                    score = TEN,
+                    amount = BigDecimal(3),
+                    buyPrice = BigDecimal(100),
+                    sellPrice = BigDecimal(110)
+                ),
+                TestScoredTrade(
+                    score = SEVEN,
+                    amount = BigDecimal(2),
+                    buyPrice = BigDecimal(100),
+                    sellPrice = BigDecimal(110)
+                ),
+                TestScoredTrade(
+                    score = TWO,
+                    amount = BigDecimal(9),
+                    buyPrice = BigDecimal(100),
+                    sellPrice = BigDecimal(110)
+                ),
+                TestScoredTrade(
+                    score = TWO,
+                    amount = BigDecimal(2),
+                    buyPrice = BigDecimal(100),
+                    sellPrice = BigDecimal(110)
+                ),
+            )
+        )
+
+        val amount = mockCoinbase.placedOrders[0].amount
+
+        assertThat(amount, `is`(FIVE))
     }
 
 }

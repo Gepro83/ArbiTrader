@@ -4,6 +4,7 @@ import at.gpro.arbitrader.entity.ArbiTrade
 import at.gpro.arbitrader.entity.Currency
 import at.gpro.arbitrader.entity.CurrencyPair
 import at.gpro.arbitrader.entity.Exchange
+import mu.KotlinLogging
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -13,25 +14,34 @@ class BalanceKeeper(
     ) {
     private val balanceReduceMap : MutableMap<Exchange, MutableMap<Currency, BigDecimal>> = HashMap()
 
+    companion object {
+        private val LOG = KotlinLogging.logger {}
+    }
+
     fun getSafeAmount(
         buyExchange: Exchange,
         sellExchange: Exchange,
         pair: CurrencyPair,
         trade: ArbiTrade
     ): BigDecimal {
-
         val maxSellAmount = getMaxSellAmount(sellExchange, pair, trade.amount)
+        LOG.debug { "$maxSellAmount" }
 
         if (buyExchange.getReducedBalance(pair.payCurrency) > getIncreasedTradePrice(maxSellAmount, trade.buyPrice))
             return maxSellAmount
 
-        return buyExchange.getReducedBalance(pair.payCurrency)
-            .setScale(pair.mainCurrency.scale)
-            .divide(
-                trade.buyPrice.increaseBy(safePriceMargin),
-                RoundingMode.HALF_DOWN
-            )
+        val safeAmount = calculateSafeAmount(buyExchange, pair, trade)
+
+        return if (safeAmount < BigDecimal.ZERO) BigDecimal.ZERO else safeAmount
     }
+
+    private fun calculateSafeAmount(
+        buyExchange: Exchange,
+        pair: CurrencyPair,
+        trade: ArbiTrade
+    ): BigDecimal = buyExchange.getReducedBalance(pair.payCurrency)
+        .setScale(pair.mainCurrency.scale, RoundingMode.HALF_DOWN)
+        .divide(trade.buyPrice.increaseBy(safePriceMargin), RoundingMode.HALF_DOWN)
 
     private fun getIncreasedTradePrice(
         amount: BigDecimal,
@@ -62,6 +72,11 @@ class BalanceKeeper(
         }
 
         currencyMap.merge(currency, amount, BigDecimal::plus)
+
+        if (exchange.getReducedBalance(currency) < BigDecimal.ZERO) {
+            LOG.warn { "Balance of ${exchange.getName()} was tried to be reduced below 0!" }
+            currencyMap[currency] = exchange.getBalance(currency)
+        }
     }
 
 }

@@ -14,5 +14,5 @@ enum class CurrencyPair(
 }
 
 enum class Currency(val scale: Int) {
-    BTC(8), EUR(2), ETH(8), BCH(8), XRP(10);
+    BTC(12), EUR(10), ETH(12), BCH(12), XRP(12);
 }

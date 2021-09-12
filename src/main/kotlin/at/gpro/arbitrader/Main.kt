@@ -1,8 +1,13 @@
 package at.gpro.arbitrader
 
+import at.gpro.arbitrader.control.TradeController
+import at.gpro.arbitrader.evaluate.SpreadThresholdEvaluator
+import at.gpro.arbitrader.execute.MarketPlacer
+import at.gpro.arbitrader.find.ArbiTradeFinderFacade
 import at.gpro.arbitrader.kraken.Kraken
 import at.gpro.arbitrader.security.model.ApiKeyStore
 import at.gpro.arbitrader.xchange.WebSocketExchangeBuilder
+import at.gpro.arbitrader.xchange.WebSocketProvider
 import at.gpro.arbitrader.xchange.utils.CurrencyConverter
 import at.gpro.arbitrader.xchange.utils.XchangeCurrency
 import at.gpro.arbitrader.xchange.utils.XchangePair
@@ -20,6 +25,7 @@ import org.knowm.xchange.dto.account.Balance
 import org.knowm.xchange.dto.account.Wallet
 import org.knowm.xchange.dto.trade.MarketOrder
 import java.io.File
+import java.lang.Thread.sleep
 import java.math.BigDecimal
 
 private val API_KEY_STORE = ApiKeyStore.from(File("/Users/gprohaska/Documents/crypto/ApiKeys.json"))
@@ -60,7 +66,7 @@ fun main() {
     val kraken = WebSocketExchangeBuilder.buildAndConnectFrom(
         KrakenStreamingExchange::class.java,
         KRAKEN_KEY,
-        0.0020,
+        0.0025,
         currenctPairs,
         subscribeOrders = { pair, consumer ->
             subscriptions[pair] = consumer
@@ -101,7 +107,21 @@ fun main() {
     LOG.debug { "coinbase BTC:" + coinbase.getBalance(at.gpro.arbitrader.entity.Currency.BTC) }
     LOG.debug { "coinbase EUR:" + coinbase.getBalance(at.gpro.arbitrader.entity.Currency.EUR) }
 
+    val updateProvider = WebSocketProvider(
+        listOf(kraken, coinbase, binance),
+        currenctPairs.map { CurrencyConverter().convert(it) }
+    )
 
+    sleep(2000)
+
+    TradeController(
+        updateProvider,
+        ArbiTradeFinderFacade(),
+        SpreadThresholdEvaluator(0.001),
+        MarketPlacer(0.1, 0.1),
+//        CsvLogger(File("log.log"), 500),
+        currenctPairs.map { CurrencyConverter().convert(it) }
+    ).run()
 
 }
 
