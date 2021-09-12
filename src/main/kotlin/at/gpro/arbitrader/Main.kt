@@ -1,9 +1,5 @@
 package at.gpro.arbitrader
 
-import at.gpro.arbitrader.control.TradeController
-import at.gpro.arbitrader.evaluate.SpreadThresholdEvaluator
-import at.gpro.arbitrader.execute.MarketPlacer
-import at.gpro.arbitrader.find.ArbiTradeFinderFacade
 import at.gpro.arbitrader.kraken.Kraken
 import at.gpro.arbitrader.security.model.ApiKeyStore
 import at.gpro.arbitrader.xchange.WebSocketExchangeBuilder
@@ -25,7 +21,6 @@ import org.knowm.xchange.dto.account.Balance
 import org.knowm.xchange.dto.account.Wallet
 import org.knowm.xchange.dto.trade.MarketOrder
 import java.io.File
-import java.lang.Thread.sleep
 import java.math.BigDecimal
 
 private val API_KEY_STORE = ApiKeyStore.from(File("/Users/gprohaska/Documents/crypto/ApiKeys.json"))
@@ -66,7 +61,7 @@ fun main() {
     val kraken = WebSocketExchangeBuilder.buildAndConnectFrom(
         KrakenStreamingExchange::class.java,
         KRAKEN_KEY,
-        0.0025,
+        0.0020,
         currenctPairs,
         subscribeOrders = { pair, consumer ->
             subscriptions[pair] = consumer
@@ -98,30 +93,48 @@ fun main() {
 
     selfMadeKraken.nonceFactory = kraken.nonceFactory
 
-    LOG.debug { "kraken BTC:" + kraken.getBalance(at.gpro.arbitrader.entity.Currency.BTC) }
-    LOG.debug { "kraken EUR:" + kraken.getBalance(at.gpro.arbitrader.entity.Currency.EUR) }
+    val krBTC = kraken.getBalance(at.gpro.arbitrader.entity.Currency.BTC)
+    LOG.debug { "kraken BTC: $krBTC" }
+    val krEUR = kraken.getBalance(at.gpro.arbitrader.entity.Currency.EUR)
+    LOG.debug { "kraken EUR: $krEUR" }
 
-    LOG.debug { "binance:" + binance.getBalance(at.gpro.arbitrader.entity.Currency.BTC) }
-    LOG.debug { "binance:" + binance.getBalance(at.gpro.arbitrader.entity.Currency.EUR) }
+    val binBTC = binance.getBalance(at.gpro.arbitrader.entity.Currency.BTC)
+    LOG.debug { "binance BTC: $binBTC" }
 
-    LOG.debug { "coinbase BTC:" + coinbase.getBalance(at.gpro.arbitrader.entity.Currency.BTC) }
-    LOG.debug { "coinbase EUR:" + coinbase.getBalance(at.gpro.arbitrader.entity.Currency.EUR) }
+    val binEUR = binance.getBalance(at.gpro.arbitrader.entity.Currency.EUR)
+    LOG.debug { "binance EUR: $binEUR" }
+
+    val cbBTC = coinbase.getBalance(at.gpro.arbitrader.entity.Currency.BTC)
+    LOG.debug { "coinbase BTC: $cbBTC" }
+
+    val cbEUR = coinbase.getBalance(at.gpro.arbitrader.entity.Currency.EUR)
+    LOG.debug { "coinbase EUR: $cbEUR" }
+
+    LOG.debug { "total BTC: ${krBTC + binBTC + cbBTC}" }
+    LOG.debug { "total EUR: ${krEUR + binEUR + cbEUR}" }
 
     val updateProvider = WebSocketProvider(
         listOf(kraken, coinbase, binance),
         currenctPairs.map { CurrencyConverter().convert(it) }
     )
 
-    sleep(2000)
+//    kraken.place(at.gpro.arbitrader.entity.Order(OrderType.ASK, BigDecimal("0.04"),
+//        at.gpro.arbitrader.entity.CurrencyPair.BTC_EUR
+//    ))
+//
+//    coinbase.place(at.gpro.arbitrader.entity.Order(OrderType.ASK, BigDecimal("0.04"),
+//        at.gpro.arbitrader.entity.CurrencyPair.BTC_EUR
+//    ))
 
-    TradeController(
-        updateProvider,
-        ArbiTradeFinderFacade(),
-        SpreadThresholdEvaluator(0.001),
-        MarketPlacer(0.1, 0.1),
-//        CsvLogger(File("log.log"), 500),
-        currenctPairs.map { CurrencyConverter().convert(it) }
-    ).run()
+//
+//    TradeController(
+//        updateProvider,
+//        ArbiTradeFinderFacade(),
+//        SpreadThresholdEvaluator(0.001),
+//        MarketPlacer(0.05, 0.1),
+////        CsvLogger(File("log.log"), 500),
+//        currenctPairs.map { CurrencyConverter().convert(it) }
+//    ).run()
 
 }
 

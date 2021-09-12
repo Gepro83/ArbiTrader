@@ -17,6 +17,8 @@ class MarketPlacer(
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
+    private fun ScoredArbiTrade.prettyPrint(): String = "amount: $amount - score: $score - buyPrice: $buyPrice - sellPrice: $sellPrice"
+
     override fun placeTrades(
         pair: CurrencyPair,
         buyExchange: Exchange,
@@ -32,9 +34,12 @@ class MarketPlacer(
             trades
         )
 
-        if (amount > BigDecimal.ZERO) {
-            coroutines.add(placeAsync(Order(OrderType.ASK, amount, pair), buyExchange))
-            coroutines.add(placeAsync(Order(OrderType.BID, amount, pair), sellExchange))
+        if (amount > pair.minTradeAmount) {
+            LOG.debug {
+                "Found tradeable amount ($amount) in ${trades.map { it.prettyPrint() }}"
+            }
+            coroutines.add(placeAsync(Order(OrderType.ASK, amount, pair), sellExchange))
+            coroutines.add(placeAsync(Order(OrderType.BID, amount, pair), buyExchange))
         }
 
         runBlocking {
@@ -63,8 +68,6 @@ class MarketPlacer(
                 reduceBalance(buyExchange, currentAmount.times(trade.buyPrice), pair.payCurrency)
                 reduceBalance(sellExchange, currentAmount, pair.mainCurrency)
             }
-
-            LOG.debug { "Safe amount: $totalAmount for buy at ${buyExchange.getName()} and sell at ${sellExchange.getName()}" }
 
             return totalAmount
         }

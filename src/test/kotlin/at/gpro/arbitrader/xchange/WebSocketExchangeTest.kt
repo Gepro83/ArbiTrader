@@ -39,6 +39,8 @@ class WebSocketExchangeTest {
     var btcBalance = BigDecimal("10.0")
     var eurBalance = BigDecimal("2000.0")
 
+    var placedTrade: MarketOrder? = null
+
     val mockExchange = object : StreamingExchange {
         override fun getExchangeSpecification(): ExchangeSpecification? = null
         override fun getExchangeMetaData(): ExchangeMetaData? = null
@@ -49,7 +51,10 @@ class WebSocketExchangeTest {
         override fun getMarketDataService(): MarketDataService? = null
         override fun getTradeService(): TradeService {
             return object : TradeService {
-                override fun placeMarketOrder(marketOrder: MarketOrder?): String = testOrderId
+                override fun placeMarketOrder(marketOrder: MarketOrder?): String {
+                    placedTrade = marketOrder
+                    return testOrderId
+                }
             }
         }
 
@@ -153,6 +158,46 @@ class WebSocketExchangeTest {
         )
 
         assertTrue(orderPlacedLatch.await(1, TimeUnit.SECONDS))
+    }
+
+    @Test
+    internal fun `amount cut to pair scale`() {
+        val orderPlacedLatch = CountDownLatch(1)
+
+        runInThread {
+            WebSocketExchange(mockExchange, 0.0, listOf(CurrencyPair.BTC_EUR))
+                .place(XchangePair.BTC_EUR, XchangeOrderType.BID, BigDecimal("3.000001"))
+            orderPlacedLatch.countDown()
+        }
+
+        orderChangesObservable.onNext(
+            MarketOrder.Builder(XchangeOrderType.BID, XchangePair.BTC_EUR)
+                .originalAmount(BigDecimal(3))
+                .id(testOrderId)
+                .orderStatus(Order.OrderStatus.FILLED)
+                .build()
+        )
+        assertThat(placedTrade?.originalAmount, `is`(BigDecimal("3.00000")))
+    }
+
+    @Test
+    internal fun `minimum pair scale possible`() {
+        val orderPlacedLatch = CountDownLatch(1)
+
+        runInThread {
+            WebSocketExchange(mockExchange, 0.0, listOf(CurrencyPair.BTC_EUR))
+                .place(XchangePair.BTC_EUR, XchangeOrderType.BID, BigDecimal("3.00001"))
+            orderPlacedLatch.countDown()
+        }
+
+        orderChangesObservable.onNext(
+            MarketOrder.Builder(XchangeOrderType.BID, XchangePair.BTC_EUR)
+                .originalAmount(BigDecimal(3))
+                .id(testOrderId)
+                .orderStatus(Order.OrderStatus.FILLED)
+                .build()
+        )
+        assertThat(placedTrade?.originalAmount, `is`(BigDecimal("3.00001")))
     }
 
 

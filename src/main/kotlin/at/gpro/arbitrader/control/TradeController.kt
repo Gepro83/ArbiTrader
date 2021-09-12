@@ -49,8 +49,6 @@ class TradeController(
             .groupBy { it.buyExchangePrice.exchange to it.sellExchangePrice.exchange }
             .forEach { (exchangePair, trades) ->
 
-                LOG.debug { "Found ${trades.size} trades ($pair): buy: ${exchangePair.first} sell: ${exchangePair.second}" }
-                LOG.debug { "Trades: $trades" }
                 tradePlacer.placeTrades(
                     pair,
                     exchangePair.first,

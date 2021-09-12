@@ -25,7 +25,6 @@ class BalanceKeeper(
         trade: ArbiTrade
     ): BigDecimal {
         val maxSellAmount = getMaxSellAmount(sellExchange, pair, trade.amount)
-        LOG.debug { "$maxSellAmount" }
 
         if (buyExchange.getReducedBalance(pair.payCurrency) > getIncreasedTradePrice(maxSellAmount, trade.buyPrice))
             return maxSellAmount

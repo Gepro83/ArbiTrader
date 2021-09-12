@@ -1,18 +1,21 @@
 package at.gpro.arbitrader.entity
 
+import java.math.BigDecimal
+
 enum class CurrencyPair(
     val mainCurrency: Currency,
-    val payCurrency: Currency
+    val payCurrency: Currency,
+    val minTradeAmount: BigDecimal
 ) {
-    BTC_EUR(Currency.BTC, Currency.EUR),
-    ETH_EUR(Currency.ETH, Currency.EUR),
-    BCH_EUR(Currency.BCH, Currency.EUR),
-    XRP_EUR(Currency.XRP, Currency.EUR),
-    ETH_BTC(Currency.ETH, Currency.BTC),
-    XRP_BTC(Currency.XRP, Currency.BTC),
-    XRP_ETH(Currency.XRP, Currency.ETH)
+    BTC_EUR(Currency.BTC, Currency.EUR, BigDecimal("0.0001")),
+    ETH_EUR(Currency.ETH, Currency.EUR, BigDecimal("0.0001")),
+    BCH_EUR(Currency.BCH, Currency.EUR, BigDecimal("0.0001")),
+    XRP_EUR(Currency.XRP, Currency.EUR, BigDecimal("0.0001")),
+    ETH_BTC(Currency.ETH, Currency.BTC, BigDecimal("0.0001")),
+    XRP_BTC(Currency.XRP, Currency.BTC, BigDecimal("0.0001")),
+    XRP_ETH(Currency.XRP, Currency.ETH, BigDecimal("0.0001"))
 }
 
 enum class Currency(val scale: Int) {
-    BTC(12), EUR(10), ETH(12), BCH(12), XRP(12);
+    BTC(5), EUR(10), ETH(5), BCH(5), XRP(5);
 }

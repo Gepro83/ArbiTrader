@@ -20,6 +20,7 @@ import org.knowm.xchange.service.trade.TradeService
 import org.knowm.xchange.utils.OrderValuesHelper
 import si.mazi.rescu.SynchronizedValueFactory
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -132,6 +133,8 @@ class WebSocketExchange(
 
     override fun getBalance(currency: Currency): BigDecimal = wallet.getBalance(currency.toXchangeCurrency()).available
 
+
+
     fun place(
         pair: XchangePair,
         orderType: XchangeOrderType,
@@ -142,9 +145,14 @@ class WebSocketExchange(
             return
         }
 
-        val placeAmount = orderValuesHelpers[pair]?.adjustAmount(amount) ?: amount.also {
-            LOG.debug { "${getName()} -no order values helper for ${getName()}" }
-        }
+        val placeAmount = amount.setScale(pairConverter.convert(pair).mainCurrency.scale, RoundingMode.DOWN)
+
+        if (placeAmount == BigDecimal.ZERO)
+            return
+
+//        orderValuesHelpers[pair]?.adjustAmount(amount) ?: amount.also {
+//            LOG.debug { "${getName()} - no order values helper for ${getName()}" }
+//        }
 
         val xchangeOrder = MarketOrder.Builder(orderType, pair)
             .originalAmount(placeAmount)
