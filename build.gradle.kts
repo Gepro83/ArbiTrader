@@ -20,7 +20,6 @@ repositories {
 
 dependencies {
     // general
-    implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("io.github.microutils:kotlin-logging:1.7.9")
     implementation("org.slf4j:slf4j-api:1.7.5")
     implementation("org.slf4j:slf4j-log4j12:1.7.5")
