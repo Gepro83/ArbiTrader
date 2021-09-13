@@ -5,6 +5,7 @@ import at.gpro.arbitrader.entity.*
 import kotlinx.coroutines.*
 import mu.KotlinLogging
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 class MarketPlacer(
     private val safePriceMargin : Double = 0.0,
@@ -17,7 +18,17 @@ class MarketPlacer(
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    private fun ScoredArbiTrade.prettyPrint(): String = "amount: $amount - score: $score - buyPrice: $buyPrice - sellPrice: $sellPrice"
+    private fun averageBuyPrice(trades: List<ScoredArbiTrade>): BigDecimal =
+        trades.sumOf { it.buyPrice }
+            .divide(trades.size.toBigDecimal(), RoundingMode.HALF_DOWN)
+
+    private fun averageSellPrice(trades: List<ScoredArbiTrade>): BigDecimal =
+        trades.sumOf { it.sellPrice }
+            .divide(trades.size.toBigDecimal(), RoundingMode.HALF_DOWN)
+
+    private fun averageScore(trades: List<ScoredArbiTrade>): BigDecimal =
+        trades.sumOf { it.score }
+            .divide(trades.size.toBigDecimal(), RoundingMode.HALF_DOWN)
 
     override fun placeTrades(
         pair: CurrencyPair,
@@ -36,7 +47,7 @@ class MarketPlacer(
 
         if (amount > pair.minTradeAmount) {
             LOG.debug {
-                "Found tradeable amount ($amount) in ${trades.map { it.prettyPrint() }}"
+                "Found tradeable amount ($amount) avgScore: ${averageScore(trades)} avgBuy: ${averageBuyPrice(trades)} avgSell: ${averageSellPrice(trades)}"
             }
             coroutines.add(placeAsync(Order(OrderType.ASK, amount, pair), sellExchange))
             coroutines.add(placeAsync(Order(OrderType.BID, amount, pair), buyExchange))

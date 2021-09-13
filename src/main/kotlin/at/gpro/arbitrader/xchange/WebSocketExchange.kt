@@ -23,6 +23,7 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 private val LOG = KotlinLogging.logger {}
 
@@ -45,7 +46,7 @@ class WebSocketExchange(
 ) : StreamingExchange, Exchange {
 
     companion object {
-        const val ORDER_FILL_TIMEOUT_SECONDS = 3L
+        const val ORDER_FILL_TIMEOUT_SECONDS = 2L
     }
 
     private val exchange = ExchangeConverter().convert(xchange, fee)
@@ -91,8 +92,8 @@ class WebSocketExchange(
 
         if (order?.status == org.knowm.xchange.dto.Order.OrderStatus.FILLED) {
             LOG.debug { "FILLED !" }
-//            orderLatchesMap[order?.id]?.countDown()
-//            orderLatchesMap.remove(order?.id)
+            orderLatchesMap[order?.id]?.countDown()
+            orderLatchesMap.remove(order?.id)
         }
 
     }
@@ -164,16 +165,13 @@ class WebSocketExchange(
             val latch = CountDownLatch(1)
 
             val orderId = place(xchangeOrder)
-//            LOG.debug { "${getName()} - done - orderId: $orderId - waiting for order to fill" }
-//            orderLatchesMap[orderId] = latch
-//
-//            if(!latch.await(ORDER_FILL_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-//                LOG.warn { "${getName()} - Order not filled within timeout - cancelling" }
-//                xchange.tradeService.cancelOrder(orderId).also { result ->
-//                    LOG.debug { "${getName()} - order canceled: $result" }
-//                }
-//            } else
-//                LOG.debug { "${getName()} - order filled !" }
+            LOG.debug { "${getName()} - done - orderId: $orderId - waiting for order to fill" }
+            orderLatchesMap[orderId] = latch
+
+            if(!latch.await(ORDER_FILL_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                LOG.warn { "${getName()} - Order not filled within timeout!" }
+            else
+                LOG.debug { "${getName()} - order filled !" }
 
         } catch (e: Exception) {
             LOG.error(e) { "${getName()} - exception during order placement: $e" }

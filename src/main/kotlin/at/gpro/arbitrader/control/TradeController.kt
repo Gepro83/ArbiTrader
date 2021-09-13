@@ -1,6 +1,9 @@
 package at.gpro.arbitrader.control
 
 import at.gpro.arbitrader.entity.CurrencyPair
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newSingleThreadContext
 import mu.KotlinLogging
 
 private val LOG = KotlinLogging.logger {}
@@ -15,9 +18,15 @@ class TradeController(
     @Volatile
     private var checking = false
 
+    private val scope = CoroutineScope(newSingleThreadContext("ControllerThread"))
+
     fun run() {
         LOG.debug { "trade controller started" }
-        updateProvider.onUpdate { onOrderBookUpdate() }
+        updateProvider.onUpdate {
+            scope.launch {
+                onOrderBookUpdate()
+            }
+        }
     }
 
     private fun onOrderBookUpdate() {

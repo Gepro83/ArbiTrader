@@ -31,6 +31,19 @@ private val LOG = KotlinLogging.logger {}
 
 private val mainScope = CoroutineScope(Dispatchers.IO + Job())
 
+//fun main() {
+//    val filteredWritter = File("filtered-13.9.log").writer()
+//    File("13.9.vormittag.log").useLines { lines->
+//
+//        lines.filter { it.contains("Balance of Kraken was tried to be reduced below 0!").not() }
+//            .forEach { line ->
+//                filteredWritter.write(line + System.lineSeparator())
+//            }
+//    }
+//
+//    filteredWritter.close()
+//}
+
 fun main(args: Array<String>) {
 
     val apiKeyPath = args.getOrNull(0) ?: "/Users/gprohaska/Documents/crypto/ApiKeys.json"
@@ -54,7 +67,7 @@ fun main(args: Array<String>) {
     val coinbase = WebSocketExchangeBuilder.buildAndConnectFrom(
         CoinbaseProStreamingExchange::class.java,
         COINBASEPRO_KEY,
-        0.005,
+        0.0025,
         currenctPairs
     )!!
 
@@ -67,7 +80,7 @@ fun main(args: Array<String>) {
     val kraken = WebSocketExchangeBuilder.buildAndConnectFrom(
         KrakenStreamingExchange::class.java,
         KRAKEN_KEY,
-        0.0020,
+        0.0026,
         currenctPairs,
         subscribeOrders = { pair, consumer ->
             subscriptions[pair] = consumer
@@ -75,7 +88,7 @@ fun main(args: Array<String>) {
         placeOrder = { order ->
             val orderId = selfMadeKraken.place(order)
             mainScope.launch {
-                delay(20)
+                delay(15)
                 val filledOrder = MarketOrder.Builder(order.type, order.instrument)
                     .id(orderId)
                     .orderStatus(Order.OrderStatus.FILLED)
@@ -124,10 +137,37 @@ fun main(args: Array<String>) {
         currenctPairs.map { CurrencyConverter().convert(it) }
     )
 
-//    kraken.place(at.gpro.arbitrader.entity.Order(OrderType.ASK, BigDecimal("0.04"),
+//    val scope = CoroutineScope(newSingleThreadContext("ControllerThread"))
+//    var counter = 0
+//    var done = false
+//
+//    updateProvider.onUpdate {
+//        if (counter < 50)
+//            counter++
+//
+//        if (counter == 50 && !done) {
+//            done = true
+//            LOG.debug { "Hi"}
+//            scope.launch {
+//                LOG.debug { "Launched"}
+//                updateProvider.getOrderBooks(at.gpro.arbitrader.entity.CurrencyPair.BTC_EUR)
+//                LOG.debug { "getting... "}
+////                coinbase.marketDataService.getOrderBook(XchangePair.BTC_EUR)
+////                coinbase.place(at.gpro.arbitrader.entity.Order(
+////                    OrderType.ASK, BigDecimal("0.001"),
+////                    at.gpro.arbitrader.entity.CurrencyPair.BTC_EUR
+////                ))
+//                LOG.debug { "Done"}
+//            }
+//        }
+//
+//    }
+
+//    coinbase.place(at.gpro.arbitrader.entity.Order(
+//        OrderType.ASK, BigDecimal("0.04"),
 //        at.gpro.arbitrader.entity.CurrencyPair.BTC_EUR
 //    ))
-//
+////
 //    coinbase.place(at.gpro.arbitrader.entity.Order(OrderType.ASK, BigDecimal("0.04"),
 //        at.gpro.arbitrader.entity.CurrencyPair.BTC_EUR
 //    ))
@@ -136,8 +176,8 @@ fun main(args: Array<String>) {
     TradeController(
         updateProvider,
         ArbiTradeFinderFacade(),
-        SpreadThresholdEvaluator(0.001),
-        MarketPlacer(0.05, 0.1),
+        SpreadThresholdEvaluator(0.0015),
+        MarketPlacer(0.2, 0.2),
 //        CsvLogger(File("log.log"), 500),
         currenctPairs.map { CurrencyConverter().convert(it) }
     ).run()
