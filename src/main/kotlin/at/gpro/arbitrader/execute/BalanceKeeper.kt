@@ -10,7 +10,7 @@ import java.math.RoundingMode
 
 class BalanceKeeper(
     private val safePriceMargin: Double,
-    private val balanceMargin: Double
+    private val payBalanceMargin: Double
     ) {
     private val balanceReduceMap : MutableMap<Exchange, MutableMap<Currency, BigDecimal>> = HashMap()
 
@@ -34,28 +34,13 @@ class BalanceKeeper(
         return if (safeAmount < BigDecimal.ZERO) BigDecimal.ZERO else safeAmount
     }
 
-    private fun calculateSafeAmount(
-        buyExchange: Exchange,
-        pair: CurrencyPair,
-        trade: ArbiTrade
-    ): BigDecimal = buyExchange.getReducedBalance(pair.payCurrency)
-        .setScale(pair.mainCurrency.scale, RoundingMode.HALF_DOWN)
-        .divide(trade.buyPrice.increaseBy(safePriceMargin), RoundingMode.HALF_DOWN)
-
-    private fun getIncreasedTradePrice(
-        amount: BigDecimal,
-        price: BigDecimal
-    ): BigDecimal = amount.times(price.increaseBy(balanceMargin))
-
-    private fun BigDecimal.increaseBy(percent: Double) = this.times(BigDecimal(1.0 + percent))
-
     private fun getMaxSellAmount(
         sellExchange: Exchange,
         pair: CurrencyPair,
         tradeAmount: BigDecimal
     ): BigDecimal {
         val balance = sellExchange.getReducedBalance(pair.mainCurrency)
-        
+
         return if (balance < tradeAmount)
             balance
         else
@@ -64,6 +49,21 @@ class BalanceKeeper(
 
     private fun Exchange.getReducedBalance(currency: Currency): BigDecimal =
         getBalance(currency).minus(balanceReduceMap[this]?.get(currency) ?: BigDecimal.ZERO)
+
+    private fun getIncreasedTradePrice(
+        amount: BigDecimal,
+        price: BigDecimal
+    ): BigDecimal = amount.times(price.increaseBy(payBalanceMargin))
+
+    private fun calculateSafeAmount(
+        buyExchange: Exchange,
+        pair: CurrencyPair,
+        trade: ArbiTrade
+    ): BigDecimal = buyExchange.getReducedBalance(pair.payCurrency)
+        .setScale(pair.mainCurrency.scale, RoundingMode.HALF_DOWN)
+        .divide(trade.buyPrice.increaseBy(safePriceMargin), RoundingMode.HALF_DOWN)
+
+    private fun BigDecimal.increaseBy(percent: Double) = this.times(BigDecimal(1.0 + percent))
 
     fun reduceBalance(exchange: Exchange, amount: BigDecimal, currency: Currency) {
         val currencyMap = balanceReduceMap.getOrPut(exchange) {

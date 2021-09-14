@@ -32,10 +32,10 @@ private val LOG = KotlinLogging.logger {}
 private val mainScope = CoroutineScope(Dispatchers.IO + Job())
 
 //fun main() {
-//    val filteredWritter = File("filtered-13.9.log").writer()
-//    File("13.9.vormittag.log").useLines { lines->
+//    val filteredWritter = File("filtered-14.9.log").writer()
+//    File("14.9.nacht.log").useLines { lines->
 //
-//        lines.filter { it.contains("Balance of Kraken was tried to be reduced below 0!").not() }
+//        lines.filter { it.contains("was tried to be reduced below 0!").not() }
 //            .forEach { line ->
 //                filteredWritter.write(line + System.lineSeparator())
 //            }
@@ -133,9 +133,11 @@ fun main(args: Array<String>) {
     LOG.debug { "total EUR: ${krEUR + binEUR + cbEUR}" }
 
     val updateProvider = WebSocketProvider(
-        listOf(kraken, coinbase, binance),
+        listOf(binance, kraken, coinbase),
         currenctPairs.map { CurrencyConverter().convert(it) }
     )
+
+//
 
 //    val scope = CoroutineScope(newSingleThreadContext("ControllerThread"))
 //    var counter = 0
@@ -176,8 +178,8 @@ fun main(args: Array<String>) {
     TradeController(
         updateProvider,
         ArbiTradeFinderFacade(),
-        SpreadThresholdEvaluator(0.0015),
-        MarketPlacer(0.2, 0.2),
+        SpreadThresholdEvaluator(0.008),
+        MarketPlacer(0.05, 0.05),
 //        CsvLogger(File("log.log"), 500),
         currenctPairs.map { CurrencyConverter().convert(it) }
     ).run()
