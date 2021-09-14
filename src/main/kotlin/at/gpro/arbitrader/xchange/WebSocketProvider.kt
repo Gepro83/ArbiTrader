@@ -46,8 +46,10 @@ class WebSocketProvider(
         pair: CurrencyPair
     ) = exchange.streamingMarketDataService
         .getOrderBook(pairConverter.convert(pair))
-        .subscribe { orderBook -> onOrderBookUpdate(orderBook, pair, exchange) }
-        .also { LOG.debug { "subscribed $pair at $exchange" } }
+        .subscribe(
+            { orderBook -> onOrderBookUpdate(orderBook, pair, exchange) },
+            { cause -> LOG.error("Error in orderbook subsrcription of ${exchange.getName()}", cause) }
+        ).also { LOG.debug { "subscribed $pair at $exchange" } }
 
     private fun onOrderBookUpdate(
         orderBook: XchangeOrderBook?,
@@ -59,11 +61,9 @@ class WebSocketProvider(
             return
         }
 
-        val initAge = calcAgeMillis(orderBook)
-        if (initAge > 800) {
-            LOG.warn { "book from ${exchange.getName()} too old - $initAge ms"}
+        if (calcAgeMillis(orderBook) > 1000)
             return
-        }
+
         orderBookStore.update(orderBookConverter.convert(orderBook, exchange), currencyPair)
 
         if (calcAgeMillis(orderBook) > 1000) {
@@ -73,11 +73,15 @@ class WebSocketProvider(
         onUpdate()
     }
 
-    private fun calcAgeMillis(orderBook: XchangeOrderBook) =
-        Duration.between(
-            orderBook?.timeStamp?.toInstant() ?: Instant.MIN,
-            Instant.now()
-        ).toMillis()
+    private fun calcAgeMillis(orderBook: XchangeOrderBook): Long =
+        try {
+            Duration.between(
+                orderBook?.timeStamp?.toInstant() ?: Instant.now().minusSeconds(10),
+                Instant.now()
+            ).toMillis()
+        } catch (e: Exception) {
+            Long.MAX_VALUE
+        }
 
     override fun getOrderBooks(currencyPair: CurrencyPair): List<OrderBook> =
         if (currencyPair in pairs)

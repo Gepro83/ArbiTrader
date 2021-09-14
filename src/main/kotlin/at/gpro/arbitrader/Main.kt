@@ -178,7 +178,7 @@ fun main(args: Array<String>) {
     TradeController(
         updateProvider,
         ArbiTradeFinderFacade(),
-        SpreadThresholdEvaluator(0.008),
+        SpreadThresholdEvaluator(0.001),
         MarketPlacer(0.05, 0.05),
 //        CsvLogger(File("log.log"), 500),
         currenctPairs.map { CurrencyConverter().convert(it) }
