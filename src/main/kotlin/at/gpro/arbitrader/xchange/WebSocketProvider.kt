@@ -61,13 +61,15 @@ class WebSocketProvider(
             return
         }
 
-        if (calcAgeMillis(orderBook) > 1000)
+        if (calcAgeMillis(orderBook) > 1000) {
+//            LOG.warn { "orderbook too old from ${exchange.getName()}" }
             return
+        }
 
         orderBookStore.update(orderBookConverter.convert(orderBook, exchange), currencyPair)
 
         if (calcAgeMillis(orderBook) > 1000) {
-            LOG.warn { "book from ${exchange.getName()} too old after bookstore update"}
+//            LOG.warn { "book from ${exchange.getName()} too old after bookstore update"}
             return
         }
         onUpdate()

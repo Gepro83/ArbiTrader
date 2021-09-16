@@ -179,7 +179,7 @@ fun main(args: Array<String>) {
         updateProvider,
         ArbiTradeFinderFacade(),
         SpreadThresholdEvaluator(0.001),
-        MarketPlacer(0.05, 0.05),
+        MarketPlacer(0.03),
 //        CsvLogger(File("log.log"), 500),
         currenctPairs.map { CurrencyConverter().convert(it) }
     ).run()

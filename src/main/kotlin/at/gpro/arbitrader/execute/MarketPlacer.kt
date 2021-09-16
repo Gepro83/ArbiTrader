@@ -7,10 +7,11 @@ import mu.KotlinLogging
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-class MarketPlacer(
-    private val safePriceMargin : Double = 0.0,
-    private val payBalanceMargin : Double = 0.0
-) : TradePlacer {
+class MarketPlacer(safePriceMargin : Double = 0.0) : TradePlacer {
+
+    private val safeFactor : Double = 1.0 + safePriceMargin
+
+    private var lastLog = 0L
 
     companion object {
         private val LOG = KotlinLogging.logger {}
@@ -30,6 +31,8 @@ class MarketPlacer(
         trades.sumOf { it.score }
             .divide(trades.size.toBigDecimal(), RoundingMode.HALF_DOWN)
 
+    private var isLogTime = true
+
     override fun placeTrades(
         pair: CurrencyPair,
         buyExchange: Exchange,
@@ -37,6 +40,13 @@ class MarketPlacer(
         trades: List<ScoredArbiTrade>
     ) {
         val coroutines: MutableList<Deferred<Unit>> = ArrayList(trades.size * 2)
+
+        isLogTime = (System.currentTimeMillis() - lastLog) > 5000
+
+        if(isLogTime) {
+            LOG.debug { "Placable trades found:  amount (${trades.sumOf { it.amount }}) avgScore: ${averageScore(trades).setScale(5, RoundingMode.DOWN)} avgBuy: ${averageBuyPrice(trades)} avgSell: ${averageSellPrice(trades)} buy at ${buyExchange.getName()} sell at ${sellExchange.getName()}" }
+            lastLog = System.currentTimeMillis()
+        }
 
         val amount = calculateSafeAmount(
             buyExchange,
@@ -51,6 +61,8 @@ class MarketPlacer(
             }
             coroutines.add(placeAsync(Order(OrderType.ASK, amount, pair), sellExchange))
             coroutines.add(placeAsync(Order(OrderType.BID, amount, pair), buyExchange))
+        } else {
+            LOG.debug { "Amount $amount too low"}
         }
 
         runBlocking {
@@ -64,27 +76,43 @@ class MarketPlacer(
         pair: CurrencyPair,
         trades: List<ScoredArbiTrade>
     ): BigDecimal {
-        with(BalanceKeeper(safePriceMargin, payBalanceMargin)) {
-            var totalAmount = BigDecimal.ZERO
 
-            for (trade in trades.sortedByDescending { it.score }) {
-                val safeAmount = getSafeAmount(
-                    buyExchange,
-                    sellExchange,
-                    pair,
-                    trade
-                )
+        val totalTradeAmount = trades.sumOf { it.amount.setScale(pair.mainCurrency.scale) }
 
-                totalAmount += safeAmount
-                reduceBalance(buyExchange, safeAmount.times(trade.buyPrice), pair.payCurrency)
-                reduceBalance(sellExchange, safeAmount, pair.mainCurrency)
+        val averagePrice = trades.sumOf { it.buyPrice.setScale(pair.payCurrency.scale).times(it.amount) }
+            .divide(totalTradeAmount, RoundingMode.HALF_UP)
 
-                if (safeAmount != trade.amount)
-                    break
-            }
+        val sellBalance = sellExchange.getBalance(pair.mainCurrency).setScale(pair.mainCurrency.scale)
 
-            return totalAmount
-        }
+        val maxSellAmount = if(totalTradeAmount < sellBalance)
+            totalTradeAmount
+        else
+            sellBalance
+
+        val safePrice = averagePrice.times(safeFactor.toBigDecimal())
+
+        val maxPrice = maxSellAmount.times(safePrice)
+
+        if (isLogTime)
+            LOG.debug { """calculate safe amount
+                total trade amount $totalTradeAmount
+                average price $averagePrice
+                maxsellamount $maxSellAmount
+                safePrice $safePrice
+                maxprice $maxPrice 
+            """.trimIndent() }
+
+        val buyBalance = buyExchange.getBalance(pair.payCurrency)
+
+        if (maxPrice < buyBalance)
+            return maxSellAmount
+
+        val safeAmount = buyBalance.setScale(pair.payCurrency.scale)
+            .divide(safePrice, RoundingMode.HALF_DOWN)
+            .setScale(pair.mainCurrency.scale, RoundingMode.HALF_DOWN)
+
+        return safeAmount
+
     }
 
     private fun placeAsync(order: Order, exchange: Exchange): Deferred<Unit> =
