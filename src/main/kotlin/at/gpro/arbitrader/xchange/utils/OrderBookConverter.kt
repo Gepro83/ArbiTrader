@@ -9,7 +9,8 @@ class OrderBookConverter {
     fun convert(orderBook: XchangeOrderBook, exchange: Exchange) : OrderBook {
         return OrderBook(exchange = exchange,
             sellOffers = getSellOffers(orderBook),
-            buyOffers = getBuyOffers(orderBook)
+            buyOffers = getBuyOffers(orderBook),
+            timestamp = orderBook?.timeStamp?.time ?: (System.currentTimeMillis() - 300)
         )
     }
 

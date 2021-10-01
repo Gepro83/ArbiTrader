@@ -5,10 +5,10 @@ import at.gpro.arbitrader.EMPTY_TEST_EXCHANGE
 import at.gpro.arbitrader.entity.CurrencyPair
 import at.gpro.arbitrader.entity.order.Offer
 import at.gpro.arbitrader.entity.order.OrderBook
-import at.gpro.arbitrader.util.time.ManualClock
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
 import org.junit.jupiter.api.Test
+import java.lang.Thread.sleep
 
 internal class OrderBookStoreTest {
 
@@ -30,7 +30,8 @@ internal class OrderBookStoreTest {
             listOf(
                 Offer(3, 5),
                 Offer(1, 3)
-            )
+            ),
+            System.currentTimeMillis()
         )
 
         orderBookStore.update(testOrderBook, CurrencyPair.XRP_EUR)
@@ -53,7 +54,8 @@ internal class OrderBookStoreTest {
             listOf(
                 Offer(3, 5),
                 Offer(1, 3)
-            )
+            ),
+            System.currentTimeMillis()
         )
 
         val otherExchangeOrderBook = OrderBook(
@@ -65,7 +67,8 @@ internal class OrderBookStoreTest {
             listOf(
                 Offer(2, 5),
                 Offer(5, 1)
-            )
+            ),
+            System.currentTimeMillis()
         )
 
         orderBookStore.update(testOrderBook, CurrencyPair.XRP_EUR)
@@ -85,7 +88,8 @@ internal class OrderBookStoreTest {
             listOf(
                 Offer(2, 5),
                 Offer(1, 3)
-            )
+            ),
+            System.currentTimeMillis()
         )
 
         orderBookStore.update(testOrderBook, CurrencyPair.XRP_EUR)
@@ -108,7 +112,8 @@ internal class OrderBookStoreTest {
             listOf(
                 Offer(2, 5),
                 Offer(1, 3)
-            )
+            ),
+            System.currentTimeMillis()
         )
 
         val otherExchangeOrderBook = OrderBook(
@@ -120,7 +125,8 @@ internal class OrderBookStoreTest {
             listOf(
                 Offer(5, 6),
                 Offer(2, 2)
-            )
+            ),
+            System.currentTimeMillis()
         )
 
         orderBookStore.update(testOrderBook, CurrencyPair.XRP_EUR)
@@ -135,8 +141,7 @@ internal class OrderBookStoreTest {
 
     @Test
     internal fun `orderbook no longer present after period expired`() {
-        val clock = ManualClock()
-        val manualOrderBookStore = OrderBookStore(clock)
+        val manualOrderBookStore = OrderBookStore(80)
         val testOrderBook = OrderBook(
             EMPTY_TEST_EXCHANGE,
             listOf(
@@ -146,12 +151,13 @@ internal class OrderBookStoreTest {
             listOf(
                 Offer(2, 4),
                 Offer(3, 2)
-            )
+            ),
+            System.currentTimeMillis()
         )
 
         manualOrderBookStore.update(testOrderBook, CurrencyPair.XRP_EUR)
 
-        clock.expireTimers()
+        sleep(80)
 
         assertThat(manualOrderBookStore.getBooksFor(CurrencyPair.XRP_EUR), empty())
 

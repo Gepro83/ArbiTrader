@@ -1,7 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.5.0"
+    kotlin("jvm") version "1.5.30"
+    kotlin("plugin.serialization") version "1.5.30"
     id("com.github.johnrengelman.shadow") version "5.1.0"
     idea
 }
@@ -20,13 +21,16 @@ repositories {
 
 dependencies {
     // general
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
     implementation("io.github.microutils:kotlin-logging:1.7.9")
     implementation("org.slf4j:slf4j-api:1.7.5")
     implementation("org.slf4j:slf4j-log4j12:1.7.5")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
     implementation("com.google.code.gson:gson:2.8.6")
-    implementation("io.ktor:ktor-client-core:1.6.1")
-    implementation("io.ktor:ktor-client-cio:1.6.1")
+    implementation("io.ktor:ktor-client-core:1.6.3")
+    implementation("io.ktor:ktor-client-cio:1.6.3")
+    implementation("io.ktor:ktor-client-serialization:1.6.3")
+
     
     // xchange
     implementation("org.knowm.xchange:xchange-core:5.0.9")

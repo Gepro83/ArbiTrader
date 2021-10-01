@@ -24,7 +24,8 @@ internal class OrderBookTest {
                 buyOffers = listOf(
                     Offer(amount = TEN, price = TWO),
                     Offer(amount = TEN, price = ONE),
-                    Offer(amount = TEN, price = FOUR))
+                    Offer(amount = TEN, price = FOUR)),
+                timestamp = 100L
             ).asSorted(),
             `is` (equalTo(
                 OrderBook(
@@ -38,9 +39,9 @@ internal class OrderBookTest {
                         Offer(amount = TEN, price = FOUR),
                         Offer(amount = TEN, price = TWO),
                         Offer(amount = TEN, price = ONE)
-                    )
-                )
+                    ),
+                timestamp = 100L
             ))
-        )
+        ))
     }
 }

@@ -13,12 +13,14 @@ data class Offer (
 data class OrderBook(
     val exchange: Exchange,
     val buyOffers: List<Offer>,
-    val sellOffers: List<Offer>
+    val sellOffers: List<Offer>,
+    val timestamp: Long = System.currentTimeMillis()
 ) {
     fun asSorted(): OrderBook =
         OrderBook(
             exchange,
             buyOffers.sortedByDescending { it.price },
-            sellOffers.sortedBy { it.price }
+            sellOffers.sortedBy { it.price },
+            timestamp
         )
 }

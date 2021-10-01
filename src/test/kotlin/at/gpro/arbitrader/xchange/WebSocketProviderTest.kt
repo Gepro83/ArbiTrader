@@ -72,7 +72,7 @@ internal class WebSocketProviderTest {
             every {
                 getOrderBook(XchangePair.ETH_EUR)
             } returns mockk {
-                every { subscribe(capture(subscription)) }  returns mockk(relaxed = true)
+                every { subscribe(capture(subscription), any()) }  returns mockk(relaxed = true)
             }
         }
         val exchangeMock = mockk<WebSocketExchange>(relaxed = true) {

@@ -44,8 +44,16 @@ class MarketPlacer(safePriceMargin : Double = 0.0) : TradePlacer {
         isLogTime = (System.currentTimeMillis() - lastLog) > 5000
 
         if(isLogTime) {
-            LOG.debug { "Placable trades found:  amount (${trades.sumOf { it.amount }}) avgScore: ${averageScore(trades).setScale(5, RoundingMode.DOWN)} avgBuy: ${averageBuyPrice(trades)} avgSell: ${averageSellPrice(trades)} buy at ${buyExchange.getName()} sell at ${sellExchange.getName()}" }
+            LOG.debug { """Placable trades found ($pair): 
+                |avgScore ${averageScore(trades).setScale(5, RoundingMode.DOWN)} 
+                |amount (${trades.sumOf { it.amount }}) 
+                |avgBuy ${averageBuyPrice(trades)} 
+                |avgSell ${averageSellPrice(trades)} 
+                |buy at ${buyExchange.getName()} 
+                |sell at ${sellExchange.getName()}
+                |""".trimMargin() }
             lastLog = System.currentTimeMillis()
+            isLogTime = false
         }
 
         val amount = calculateSafeAmount(
@@ -57,12 +65,16 @@ class MarketPlacer(safePriceMargin : Double = 0.0) : TradePlacer {
 
         if (amount > pair.minTradeAmount) {
             LOG.debug {
-                "Found tradeable amount ($amount) avgScore: ${averageScore(trades)} avgBuy: ${averageBuyPrice(trades)} avgSell: ${averageSellPrice(trades)}"
+                """Found tradeable amount ($amount) 
+                    |avgScore: ${averageScore(trades)} 
+                    |avgBuy: ${averageBuyPrice(trades)} 
+                    |avgSell: ${averageSellPrice(trades)}
+                    |""".trimMargin()
             }
-            coroutines.add(placeAsync(Order(OrderType.ASK, amount, pair), sellExchange))
-            coroutines.add(placeAsync(Order(OrderType.BID, amount, pair), buyExchange))
-        } else {
-            LOG.debug { "Amount $amount too low"}
+            if (averageScore(trades) > BigDecimal("0.005")) {
+                coroutines.add(placeAsync(Order(OrderType.ASK, amount, pair), sellExchange))
+                coroutines.add(placeAsync(Order(OrderType.BID, amount, pair), buyExchange))
+            }
         }
 
         runBlocking {
@@ -77,12 +89,12 @@ class MarketPlacer(safePriceMargin : Double = 0.0) : TradePlacer {
         trades: List<ScoredArbiTrade>
     ): BigDecimal {
 
-        val totalTradeAmount = trades.sumOf { it.amount.setScale(pair.mainCurrency.scale) }
+        val totalTradeAmount = trades.sumOf { it.amount.setScale(pair.mainCurrency.scale, RoundingMode.DOWN) }
 
-        val averagePrice = trades.sumOf { it.buyPrice.setScale(pair.payCurrency.scale).times(it.amount) }
+        val averagePrice = trades.sumOf { it.buyPrice.setScale(pair.payCurrency.scale, RoundingMode.UP).times(it.amount) }
             .divide(totalTradeAmount, RoundingMode.HALF_UP)
 
-        val sellBalance = sellExchange.getBalance(pair.mainCurrency).setScale(pair.mainCurrency.scale)
+        val sellBalance = sellExchange.getBalance(pair.mainCurrency).setScale(pair.mainCurrency.scale, RoundingMode.DOWN)
 
         val maxSellAmount = if(totalTradeAmount < sellBalance)
             totalTradeAmount
@@ -99,7 +111,7 @@ class MarketPlacer(safePriceMargin : Double = 0.0) : TradePlacer {
                 average price $averagePrice
                 maxsellamount $maxSellAmount
                 safePrice $safePrice
-                maxprice $maxPrice 
+                maxprice $maxPrice
             """.trimIndent() }
 
         val buyBalance = buyExchange.getBalance(pair.payCurrency)
@@ -107,9 +119,12 @@ class MarketPlacer(safePriceMargin : Double = 0.0) : TradePlacer {
         if (maxPrice < buyBalance)
             return maxSellAmount
 
-        val safeAmount = buyBalance.setScale(pair.payCurrency.scale)
+        val safeAmount = buyBalance.setScale(pair.payCurrency.scale, RoundingMode.DOWN)
             .divide(safePrice, RoundingMode.HALF_DOWN)
             .setScale(pair.mainCurrency.scale, RoundingMode.HALF_DOWN)
+
+        if (isLogTime)
+            LOG.debug { "safeAmount $safeAmount" }
 
         return safeAmount
 

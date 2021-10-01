@@ -3,27 +3,20 @@ package at.gpro.arbitrader.util
 import at.gpro.arbitrader.entity.CurrencyPair
 import at.gpro.arbitrader.entity.Exchange
 import at.gpro.arbitrader.entity.order.OrderBook
-import at.gpro.arbitrader.util.time.Clock
-import at.gpro.arbitrader.util.time.SystemClock
-import at.gpro.arbitrader.util.time.Timer
 import mu.KotlinLogging
-import java.time.Duration
+import java.util.concurrent.ConcurrentHashMap
 
 private val LOG = KotlinLogging.logger {}
 
-class OrderBookStore(private val clock: Clock = SystemClock()) {
-    companion object {
-        private val ORDERBOOK_RETENTION_DURATION = Duration.ofMillis(800)
-    }
-    private val exchangeMap : MutableMap<Exchange, MutableMap<CurrencyPair, OrderBook>> = HashMap()
-    private val timerMap: MutableMap<OrderBook, Timer> = HashMap()
+class OrderBookStore(private val retentionDurationMillis: Long = 1300) {
+    private val exchangeMap : MutableMap<Exchange, MutableMap<CurrencyPair, OrderBook>> = ConcurrentHashMap()
 
+    private var lastLog = 0L
+    private var isLogTime = true
 
     fun getBooksFor(pair: CurrencyPair): List<OrderBook> {
-        synchronized(this) {
-            removeExpired(pair)
-            return filterAllBooksFor(pair)
-        }
+        removeExpired(pair)
+        return filterAllBooksFor(pair)
     }
 
     private fun filterAllBooksFor(pair: CurrencyPair): List<OrderBook> {
@@ -31,8 +24,6 @@ class OrderBookStore(private val clock: Clock = SystemClock()) {
         exchangeMap.values.forEach { currencyMap ->
             currencyMap[pair]?.let { orderBook ->
                 bookList.add(orderBook)
-                if(orderBook.buyOffers.isEmpty())
-                    LOG.debug { "get " + orderBook.buyOffers.size.toString() + " - " + pair }
             }
         }
 
@@ -50,21 +41,24 @@ class OrderBookStore(private val clock: Clock = SystemClock()) {
         pair: CurrencyPair
     ) {
         currencyMap[pair]?.let { orderBook ->
-            if (timerMap[orderBook]?.hasExpired() == true) {
-                timerMap.remove(orderBook)
+            if (orderBook.hasExpired()) {
                 currencyMap.remove(pair)
+//                isLogTime = (System.currentTimeMillis() - lastLog) > 5000
+//                if (isLogTime) {
+//                    LOG.debug { "orderbook of ${orderBook.exchange.getName()} too old" }
+//                    lastLog = System.currentTimeMillis()
+//                }
             }
         }
     }
 
+    private fun OrderBook.hasExpired(): Boolean =
+        (System.currentTimeMillis() - timestamp) > retentionDurationMillis
+
     fun update(orderBook: OrderBook, pair: CurrencyPair) {
-        synchronized(this) {
-            if (orderBook.buyOffers.isEmpty())
-                LOG.debug { "update " + orderBook.buyOffers.size.toString() + " - " + pair }
-            val pairMap = exchangeMap.getOrPut(orderBook.exchange, { HashMap() })
-            pairMap[pair]?.let { timerMap.remove(it) }
-            pairMap[pair] = orderBook
-            timerMap[orderBook] = clock.makeTimer(ORDERBOOK_RETENTION_DURATION).apply { start() }
-        }
+        getPairMap(orderBook)[pair] = orderBook
     }
+
+    private fun getPairMap(orderBook: OrderBook) =
+        exchangeMap.getOrPut(orderBook.exchange) { ConcurrentHashMap() }
 }

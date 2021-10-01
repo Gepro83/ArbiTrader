@@ -4,6 +4,8 @@ import at.gpro.arbitrader.security.model.ApiKey
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.features.json.*
+import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
@@ -12,31 +14,98 @@ import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.knowm.xchange.currency.CurrencyPair
 import org.knowm.xchange.dto.Order
+import org.knowm.xchange.dto.marketdata.OrderBook
+import org.knowm.xchange.dto.trade.LimitOrder
 import org.knowm.xchange.dto.trade.MarketOrder
+import org.knowm.xchange.instrument.Instrument
+import org.knowm.xchange.utils.nonce.CurrentTimeIncrementalNonceFactory
 import si.mazi.rescu.SynchronizedValueFactory
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.util.*
+import java.util.concurrent.TimeUnit
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
 class Kraken(private val apiKey: ApiKey) {
 
-    var nonceFactory : SynchronizedValueFactory<Long> = SynchronizedValueFactory<Long> { 1 }
+    private val nonceFactory : SynchronizedValueFactory<Long> = CurrentTimeIncrementalNonceFactory(TimeUnit.MILLISECONDS)
 
     private val LOG = KotlinLogging.logger {}
 
-    val client = HttpClient(CIO)
+    val client = HttpClient(CIO) {
+        install(JsonFeature) {
+            serializer = KotlinxSerializer(kotlinx.serialization.json.Json {
+                ignoreUnknownKeys = true
+
+            })
+        }
+    }
 
     companion object {
         const val BASE_URL = "https://api.kraken.com"
     }
 
+    fun getOrderBook(pair: CurrencyPair): OrderBook? {
+        val endpoint = "/0/public/Depth"
+
+        val beforeRequest = Date()
+
+        val responseDTO = authRequest<KrakenOrderbookDTO>(
+            endpoint,
+            mapOf(
+                "pair" to pair.toKrakenPair(),
+                "nonce" to nonceFactory.createValue().toString(),
+                "count" to "50"
+            )
+        )
+
+
+        val asks = when(pair) {
+            CurrencyPair.BTC_EUR -> responseDTO.result.XXBTZEUR?.asks
+            CurrencyPair.ETH_EUR -> responseDTO.result.XETHZEUR?.asks
+            CurrencyPair.ETH_BTC -> responseDTO.result.XETHXXBT?.asks
+            else -> null
+        } ?: return null
+
+        val bids = when(pair) {
+            CurrencyPair.BTC_EUR -> responseDTO.result.XXBTZEUR?.bids
+            CurrencyPair.ETH_EUR -> responseDTO.result.XETHZEUR?.bids
+            CurrencyPair.ETH_BTC -> responseDTO.result.XETHXXBT?.bids
+            else -> null
+        } ?: return null
+
+        return OrderBook(
+            beforeRequest,
+            asks.map {
+                LimitOrder.Builder(Order.OrderType.ASK, pair)
+                    .limitPrice(it[0].toBigDecimal())
+                    .originalAmount(it[1].toBigDecimal())
+                    .build()
+            },
+            bids.map {
+                LimitOrder.Builder(Order.OrderType.BID, pair)
+                    .limitPrice(it[0].toBigDecimal())
+                    .originalAmount(it[1].toBigDecimal())
+                    .build()
+            }
+        )
+
+    }
+
+    private fun Instrument.toKrakenPair(): String =
+        when(this) {
+            CurrencyPair.BTC_EUR -> "XXBTZEUR"
+            CurrencyPair.ETH_EUR -> "XETHZEUR"
+            CurrencyPair.ETH_BTC -> "XETHXXBT"
+            else -> throw UnsupportedOperationException(this.toString())
+        }
+
     fun place(order: MarketOrder): String {
         val endpoint = "/0/private/AddOrder"
 
         val orderId = Random().nextInt().toString()
-        val response = authRequest(endpoint,
+        val response = authRequest<String>(endpoint,
             mapOf("ordertype" to "market",
                 "type" to order.type.let { when(it) {
                     Order.OrderType.ASK -> "sell"
@@ -44,11 +113,7 @@ class Kraken(private val apiKey: ApiKey) {
                     else -> throw UnsupportedOperationException(order.type.name)
                 } },
                 "userref" to orderId,
-                "pair" to when(order.instrument) {
-                    CurrencyPair.BTC_EUR -> "XXBTZEUR"
-                    CurrencyPair.ETH_EUR -> "XETHZEUR"
-                    else -> throw UnsupportedOperationException(order.instrument.toString())
-                },
+                "pair" to order.instrument.toKrakenPair(),
                 "volume" to order.originalAmount.toString(),
                 "nonce" to nonceFactory.createValue().toString()
             )
@@ -58,7 +123,7 @@ class Kraken(private val apiKey: ApiKey) {
         return orderId
     }
 
-    private fun authRequest(endpoint: String, parameters: Map<String, String> = mapOf()): String {
+    private inline fun <reified T> authRequest(endpoint: String, parameters: Map<String, String> = mapOf()): T {
 
         val authent = signRequest(endpoint, parameters)
 

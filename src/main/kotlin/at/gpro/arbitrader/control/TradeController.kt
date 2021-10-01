@@ -2,6 +2,7 @@ package at.gpro.arbitrader.control
 
 import at.gpro.arbitrader.entity.CurrencyPair
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
 import mu.KotlinLogging
@@ -15,30 +16,46 @@ class TradeController(
     private val tradePlacer: TradePlacer,
     private val currencyPairs: List<CurrencyPair>
 ) {
-    @Volatile
-    private var checking = false
+
+    private var isLogTime = false
+    private var lastLog = System.currentTimeMillis()
 
     private val scope = CoroutineScope(newSingleThreadContext("ControllerThread"))
 
     fun run() {
         LOG.debug { "trade controller started" }
-        updateProvider.onUpdate {
-            scope.launch {
-                onOrderBookUpdate()
+        scope.launch {
+            while(true) {
+//                isLogTime = (System.currentTimeMillis() - lastLog) > 5000
+
+//                if(isLogTime) {
+//                    LOG.debug { "start checking"}
+//                    lastLog = System.currentTimeMillis()
+//                }
+                checkAllPairs()
+//                if(isLogTime)
+//                    LOG.debug { "done checking"}
+
+                delay(50)
             }
         }
     }
 
-    private fun onOrderBookUpdate() {
-        if (!checking) {
-            checking = true
-            currencyPairs.forEach { checkPair(it) }
-            checking = false
-        }
+    private fun checkAllPairs() {
+        currencyPairs.forEach { checkPair(it) }
     }
 
     private fun checkPair(pair: CurrencyPair) {
         val orderBooks = updateProvider.getOrderBooks(pair)
+
+//        if(isLogTime) {
+//            LOG.debug { "${orderBooks.size} orderBooks" }
+//            val now = System.currentTimeMillis()
+//            val map = orderBooks.map { now - it.timestamp }
+//            LOG.debug {
+//                map
+//            }
+//        }
 
         if(orderBooks.size < 3)
             return

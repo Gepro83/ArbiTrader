@@ -32,8 +32,8 @@ private val LOG = KotlinLogging.logger {}
 private val mainScope = CoroutineScope(Dispatchers.IO + Job())
 
 //fun main() {
-//    val filteredWritter = File("filtered-14.9.log").writer()
-//    File("14.9.nacht.log").useLines { lines->
+//    val filteredWritter = File("filtered-19.9.log").writer()
+//    File("19.9.log").useLines { lines->
 //
 //        lines.filter { it.contains("was tried to be reduced below 0!").not() }
 //            .forEach { line ->
@@ -45,17 +45,82 @@ private val mainScope = CoroutineScope(Dispatchers.IO + Job())
 //}
 
 fun main(args: Array<String>) {
+    val apiKeyPath = args.getOrNull(0) ?: "/Users/gprohaska/Documents/crypto/ApiKeys.json"
+    val API_KEY_STORE = ApiKeyStore.from(File(apiKeyPath))
+    val KRAKEN_KEY = API_KEY_STORE?.getKey("Kraken") ?: throw Exception("Could not find Kraken key")
+
+    val selfMadeKraken = Kraken(KRAKEN_KEY)
+    var subscriptions : MutableMap<CurrencyPair, Consumer<Order>> = HashMap()
+
+    val krakenBTC = Currency("XXBT")
+    val krakenEUR = Currency("ZEUR")
+    val krakenETH = Currency("XETH")
+
+
+    val kraken = WebSocketExchangeBuilder.buildAndConnectFrom(
+        KrakenStreamingExchange::class.java,
+        KRAKEN_KEY,
+        0.0026,
+        listOf(CurrencyPair.BTC_EUR),
+        subscribeOrders = { pair, consumer ->
+            subscriptions[pair] = consumer
+        },
+        placeOrder = { order ->
+            val orderId = selfMadeKraken.place(order)
+            mainScope.launch {
+                delay(15)
+                val filledOrder = MarketOrder.Builder(order.type, order.instrument)
+                    .id(orderId)
+                    .orderStatus(Order.OrderStatus.FILLED)
+                    .build()
+                subscriptions[order.instrument]?.accept(filledOrder)
+            }
+            orderId
+        },
+        getWallet = {
+            val actualWallet = accountService.accountInfo.wallets.entries.first().value
+            Wallet.Builder.from(
+                actualWallet.balances.values.plus(
+                    Balance(XchangeCurrency.EUR, actualWallet.balances[krakenEUR]?.available ?: BigDecimal.ZERO)
+                ).plus(
+                    Balance(XchangeCurrency.BTC, actualWallet.balances[krakenBTC]?.available ?: BigDecimal.ZERO)
+                ).plus(
+                    Balance(XchangeCurrency.ETH, actualWallet.balances[krakenETH]?.available ?: BigDecimal.ZERO)
+                )
+            )
+                .build()
+        }
+    )!!
+
+    kraken.streamingMarketDataService.getOrderBook(XchangePair.BTC_EUR).subscribe {
+        println("streaming:")
+        println(it)
+        println("mine:")
+        println(selfMadeKraken.getOrderBook(XchangePair.BTC_EUR))
+    }
+
+
+
+//    val order = MarketOrder.Builder(Order.OrderType.BID, XchangePair.BTC_EUR)
+//        .originalAmount(BigDecimal("0.001"))
+//        .build()
+//
+//    kraken.place(order)
+}
+
+fun main2(args: Array<String>) {
 
     val apiKeyPath = args.getOrNull(0) ?: "/Users/gprohaska/Documents/crypto/ApiKeys.json"
     val API_KEY_STORE = ApiKeyStore.from(File(apiKeyPath))
     val COINBASEPRO_KEY = API_KEY_STORE?.getKey("CoinbasePro") ?: throw Exception("Could not find CoinbasePro key")
     val BINANCE_KEY = API_KEY_STORE?.getKey("Binance") ?: throw Exception("Could not find Binance key")
+//    val BITSTAMP_KEY = API_KEY_STORE?.getKey("Bitstamp") ?: throw Exception("Could not find Binance key")
     val KRAKEN_KEY = API_KEY_STORE?.getKey("Kraken") ?: throw Exception("Could not find Kraken key")
     val CEXIO_KEY = API_KEY_STORE?.getKey("CexIO") ?: throw Exception("Could not find CexIO key")
 
     LOG.info { "Arbitrader starting!" }
 
-    val currenctPairs = listOf(XchangePair.BTC_EUR)
+    val currenctPairs = listOf(XchangePair.BTC_EUR, XchangePair.ETH_EUR)
 
     val binance = WebSocketExchangeBuilder.buildAndConnectFrom(
         BinanceStreamingExchange::class.java,
@@ -63,6 +128,13 @@ fun main(args: Array<String>) {
         0.001,
         currenctPairs
     )!!
+
+//    val bitstamp = WebSocketExchangeBuilder.buildAndConnectFrom(
+//        BitstampStreamingExchange::class.java,
+//        BITSTAMP_KEY,
+//        0.005,
+//        currenctPairs
+//    )!!
 
     val coinbase = WebSocketExchangeBuilder.buildAndConnectFrom(
         CoinbaseProStreamingExchange::class.java,
@@ -76,6 +148,7 @@ fun main(args: Array<String>) {
 
     val krakenBTC = Currency("XXBT")
     val krakenEUR = Currency("ZEUR")
+    val krakenETH = Currency("XETH")
 
     val kraken = WebSocketExchangeBuilder.buildAndConnectFrom(
         KrakenStreamingExchange::class.java,
@@ -104,38 +177,64 @@ fun main(args: Array<String>) {
                     Balance(XchangeCurrency.EUR, actualWallet.balances[krakenEUR]?.available ?: BigDecimal.ZERO)
                 ).plus(
                     Balance(XchangeCurrency.BTC, actualWallet.balances[krakenBTC]?.available ?: BigDecimal.ZERO)
+                ).plus(
+                    Balance(XchangeCurrency.ETH, actualWallet.balances[krakenETH]?.available ?: BigDecimal.ZERO)
                 )
             )
                 .build()
         }
     )!!
 
-    selfMadeKraken.nonceFactory = kraken.nonceFactory
+    val btcEur = CurrencyPair(krakenBTC, krakenEUR)
+    val orderBook = kraken.marketDataService.getOrderBook(btcEur)
+    LOG.debug { "age : ${System.currentTimeMillis() - orderBook.timeStamp.time}"}
+
+    val orderBook2 = kraken.marketDataService.getOrderBook(btcEur)
+    LOG.debug { "age : ${System.currentTimeMillis() - orderBook2.timeStamp.time}"}
+
+    val orderBook3 = kraken.marketDataService.getOrderBook(btcEur)
+    LOG.debug { "age : ${System.currentTimeMillis() - orderBook3.timeStamp.time}"}
+
+     val orderBook4 = kraken.marketDataService.getOrderBook(btcEur)
+    LOG.debug { "age : ${System.currentTimeMillis() - orderBook4.timeStamp.time}"}
 
     val krBTC = kraken.getBalance(at.gpro.arbitrader.entity.Currency.BTC)
     LOG.debug { "kraken BTC: $krBTC" }
     val krEUR = kraken.getBalance(at.gpro.arbitrader.entity.Currency.EUR)
     LOG.debug { "kraken EUR: $krEUR" }
+    val krETH = kraken.getBalance(at.gpro.arbitrader.entity.Currency.ETH)
+    LOG.debug { "kraken ETH: $krETH" }
 
     val binBTC = binance.getBalance(at.gpro.arbitrader.entity.Currency.BTC)
     LOG.debug { "binance BTC: $binBTC" }
-
     val binEUR = binance.getBalance(at.gpro.arbitrader.entity.Currency.EUR)
     LOG.debug { "binance EUR: $binEUR" }
+    val binETH = binance.getBalance(at.gpro.arbitrader.entity.Currency.ETH)
+    LOG.debug { "binance ETH: $binETH" }
 
     val cbBTC = coinbase.getBalance(at.gpro.arbitrader.entity.Currency.BTC)
     LOG.debug { "coinbase BTC: $cbBTC" }
-
     val cbEUR = coinbase.getBalance(at.gpro.arbitrader.entity.Currency.EUR)
     LOG.debug { "coinbase EUR: $cbEUR" }
+    val cbETH = coinbase.getBalance(at.gpro.arbitrader.entity.Currency.ETH)
+    LOG.debug { "coinbase ETH: $cbETH" }
 
-    LOG.debug { "total BTC: ${krBTC + binBTC + cbBTC}" }
-    LOG.debug { "total EUR: ${krEUR + binEUR + cbEUR}" }
+//    val bsBTC = bitstamp.getBalance(at.gpro.arbitrader.entity.Currency.BTC)
+//    LOG.debug { "bitstamp BTC: $bsBTC" }
+//    val bsEUR = bitstamp.getBalance(at.gpro.arbitrader.entity.Currency.EUR)
+//    LOG.debug { "bitstamp EUR: $bsEUR" }
+//    val bsETH = bitstamp.getBalance(at.gpro.arbitrader.entity.Currency.ETH)
+//    LOG.debug { "bitstamp ETH: $bsETH" }
+
+    LOG.debug { "total BTC: ${krBTC + binBTC + cbBTC}" }// + bsBTC}" }
+    LOG.debug { "total EUR: ${krEUR + binEUR + cbEUR}" } // + bsEUR}" }
+    LOG.debug { "total ETH: ${krETH + binETH + cbETH}" } // + bsETH}" }
 
     val updateProvider = WebSocketProvider(
         listOf(binance, kraken, coinbase),
         currenctPairs.map { CurrencyConverter().convert(it) }
     )
+
 
 //
 
