@@ -12,6 +12,7 @@ class MarketPlacer(safePriceMargin : Double = 0.0) : TradePlacer {
     private val safeFactor : Double = 1.0 + safePriceMargin
 
     private var lastLog = 0L
+    private var isLogTime = true
 
     companion object {
         private val LOG = KotlinLogging.logger {}
@@ -26,12 +27,10 @@ class MarketPlacer(safePriceMargin : Double = 0.0) : TradePlacer {
     private fun averageSellPrice(trades: List<ScoredArbiTrade>): BigDecimal =
         trades.sumOf { it.sellPrice }
             .divide(trades.size.toBigDecimal(), RoundingMode.HALF_DOWN)
-
     private fun averageScore(trades: List<ScoredArbiTrade>): BigDecimal =
         trades.sumOf { it.score }
             .divide(trades.size.toBigDecimal(), RoundingMode.HALF_DOWN)
 
-    private var isLogTime = true
 
     override fun placeTrades(
         pair: CurrencyPair,
@@ -71,7 +70,7 @@ class MarketPlacer(safePriceMargin : Double = 0.0) : TradePlacer {
                     |avgSell: ${averageSellPrice(trades)}
                     |""".trimMargin()
             }
-            if (averageScore(trades) > BigDecimal("0.005")) {
+            if (averageScore(trades) > BigDecimal("0.09")) {
                 coroutines.add(placeAsync(Order(OrderType.ASK, amount, pair), sellExchange))
                 coroutines.add(placeAsync(Order(OrderType.BID, amount, pair), buyExchange))
             }
@@ -105,14 +104,14 @@ class MarketPlacer(safePriceMargin : Double = 0.0) : TradePlacer {
 
         val maxPrice = maxSellAmount.times(safePrice)
 
-        if (isLogTime)
-            LOG.debug { """calculate safe amount
-                total trade amount $totalTradeAmount
-                average price $averagePrice
-                maxsellamount $maxSellAmount
-                safePrice $safePrice
-                maxprice $maxPrice
-            """.trimIndent() }
+//        if (isLogTime)
+//            LOG.debug { """calculate safe amount
+//                total trade amount $totalTradeAmount
+//                average price $averagePrice
+//                maxsellamount $maxSellAmount
+//                safePrice $safePrice
+//                maxprice $maxPrice
+//            """.trimIndent() }
 
         val buyBalance = buyExchange.getBalance(pair.payCurrency)
 
@@ -123,8 +122,8 @@ class MarketPlacer(safePriceMargin : Double = 0.0) : TradePlacer {
             .divide(safePrice, RoundingMode.HALF_DOWN)
             .setScale(pair.mainCurrency.scale, RoundingMode.HALF_DOWN)
 
-        if (isLogTime)
-            LOG.debug { "safeAmount $safeAmount" }
+//        if (isLogTime)
+//            LOG.debug { "safeAmount $safeAmount" }
 
         return safeAmount
 

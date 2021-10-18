@@ -60,6 +60,8 @@ class Kraken(private val apiKey: ApiKey) {
             )
         )
 
+        if (responseDTO.error.isNotEmpty())
+            LOG.warn { "Error from kraken: ${responseDTO.error}" }
 
         val asks = when(pair) {
             CurrencyPair.BTC_EUR -> responseDTO.result.XXBTZEUR?.asks

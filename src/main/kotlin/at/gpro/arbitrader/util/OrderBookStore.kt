@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 private val LOG = KotlinLogging.logger {}
 
-class OrderBookStore(private val retentionDurationMillis: Long = 1300) {
+class OrderBookStore(private val retentionDurationMillis: Long = 350) {
     private val exchangeMap : MutableMap<Exchange, MutableMap<CurrencyPair, OrderBook>> = ConcurrentHashMap()
 
     private var lastLog = 0L

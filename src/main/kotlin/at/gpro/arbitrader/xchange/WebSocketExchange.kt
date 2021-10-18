@@ -237,11 +237,16 @@ class WebSocketExchangeBuilder {
             apiKey = key.apiKey
             secretKey = key.secret
             key.userName?.let { userName = it }
+            setExchangeSpecificParametersItem(
+                "Binance_Orderbook_Use_Higher_Frequency",
+                true
+            )
             key.specificParameter?.let {
                 setExchangeSpecificParametersItem(
                     it.key,
                     it.value
                 )
+
             }
             return this
         }

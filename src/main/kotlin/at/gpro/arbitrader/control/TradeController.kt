@@ -2,7 +2,6 @@ package at.gpro.arbitrader.control
 
 import at.gpro.arbitrader.entity.CurrencyPair
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
 import mu.KotlinLogging
@@ -36,7 +35,7 @@ class TradeController(
 //                if(isLogTime)
 //                    LOG.debug { "done checking"}
 
-                delay(50)
+//                delay(20)
             }
         }
     }
@@ -47,6 +46,18 @@ class TradeController(
 
     private fun checkPair(pair: CurrencyPair) {
         val orderBooks = updateProvider.getOrderBooks(pair)
+
+
+
+//        isLogTime = (System.currentTimeMillis() - lastLog) > 1000
+//
+//        if(isLogTime) {
+//            LOG.debug { "checking $pair - ${orderBooks.map { it.exchange }} "}
+//            LOG.debug { "${orderBooks.map { book ->
+//                "${book.exchange.getName()} - ${book.sellOffers.take(4).map { it.price }}"
+//            }}" }
+//            lastLog = System.currentTimeMillis()
+//        }
 
 //        if(isLogTime) {
 //            LOG.debug { "${orderBooks.size} orderBooks" }

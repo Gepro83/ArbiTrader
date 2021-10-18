@@ -8,6 +8,9 @@ import at.gpro.arbitrader.util.OrderBookStore
 import at.gpro.arbitrader.xchange.utils.CurrencyConverter
 import at.gpro.arbitrader.xchange.utils.OrderBookConverter
 import at.gpro.arbitrader.xchange.utils.XchangeOrderBook
+import at.gpro.arbitrader.xchange.utils.XchangePair
+import info.bitrich.xchangestream.core.StreamingMarketDataService
+import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
 import mu.KotlinLogging
 import java.time.Duration
@@ -17,7 +20,10 @@ private val LOG = KotlinLogging.logger {}
 
 class WebSocketProvider(
     private val exchanges: List<WebSocketExchange>,
-    private val pairs: List<CurrencyPair>
+    private val pairs: List<CurrencyPair>,
+    private val orderBooks: StreamingMarketDataService.(XchangePair) -> Observable<XchangeOrderBook> = {
+        getOrderBook(it)
+    }
 ) : UpdateProvider {
 
     private val subscriptions: List<Disposable>
@@ -45,7 +51,7 @@ class WebSocketProvider(
         exchange: WebSocketExchange,
         pair: CurrencyPair
     ) = exchange.streamingMarketDataService
-        .getOrderBook(pairConverter.convert(pair))
+        .orderBooks(pairConverter.convert(pair))
         .subscribe(
             { orderBook -> onOrderBookUpdate(orderBook, pair, exchange) },
             { cause -> LOG.error("Error in orderbook subsrcription of ${exchange.getName()}", cause) }
@@ -65,6 +71,8 @@ class WebSocketProvider(
 //            LOG.warn { "orderbook too old from ${exchange.getName()}" }
             return
         }
+
+//        LOG.debug { "${exchange.getName()} - age: ${calcAgeMillis(orderBook)}" }
 
         orderBookStore.update(orderBookConverter.convert(orderBook, exchange), currencyPair)
 
