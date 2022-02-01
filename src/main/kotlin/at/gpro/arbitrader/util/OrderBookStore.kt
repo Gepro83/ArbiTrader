@@ -43,11 +43,6 @@ class OrderBookStore(private val retentionDurationMillis: Long = 350) {
         currencyMap[pair]?.let { orderBook ->
             if (orderBook.hasExpired()) {
                 currencyMap.remove(pair)
-//                isLogTime = (System.currentTimeMillis() - lastLog) > 5000
-//                if (isLogTime) {
-//                    LOG.debug { "orderbook of ${orderBook.exchange.getName()} too old" }
-//                    lastLog = System.currentTimeMillis()
-//                }
             }
         }
     }

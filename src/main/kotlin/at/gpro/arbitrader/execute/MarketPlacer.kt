@@ -90,12 +90,14 @@ class MarketPlacer(safePriceMargin : Double = 0.0) : TradePlacer {
 
         val totalTradeAmount = trades.sumOf { it.amount.setScale(pair.mainCurrency.scale, RoundingMode.DOWN) }
 
-        val averagePrice = trades.sumOf { it.buyPrice.setScale(pair.payCurrency.scale, RoundingMode.UP).times(it.amount) }
-            .divide(totalTradeAmount, RoundingMode.HALF_UP)
+        val averagePrice =
+            trades.sumOf { it.buyPrice.setScale(pair.payCurrency.scale, RoundingMode.UP).times(it.amount) }
+                .divide(totalTradeAmount, RoundingMode.HALF_UP)
 
-        val sellBalance = sellExchange.getBalance(pair.mainCurrency).setScale(pair.mainCurrency.scale, RoundingMode.DOWN)
+        val sellBalance =
+            sellExchange.getBalance(pair.mainCurrency).setScale(pair.mainCurrency.scale, RoundingMode.DOWN)
 
-        val maxSellAmount = if(totalTradeAmount < sellBalance)
+        val maxSellAmount = if (totalTradeAmount < sellBalance)
             totalTradeAmount
         else
             sellBalance
@@ -104,28 +106,15 @@ class MarketPlacer(safePriceMargin : Double = 0.0) : TradePlacer {
 
         val maxPrice = maxSellAmount.times(safePrice)
 
-//        if (isLogTime)
-//            LOG.debug { """calculate safe amount
-//                total trade amount $totalTradeAmount
-//                average price $averagePrice
-//                maxsellamount $maxSellAmount
-//                safePrice $safePrice
-//                maxprice $maxPrice
-//            """.trimIndent() }
-
         val buyBalance = buyExchange.getBalance(pair.payCurrency)
 
         if (maxPrice < buyBalance)
             return maxSellAmount
 
-        val safeAmount = buyBalance.setScale(pair.payCurrency.scale, RoundingMode.DOWN)
+
+        return buyBalance.setScale(pair.payCurrency.scale, RoundingMode.DOWN)
             .divide(safePrice, RoundingMode.HALF_DOWN)
             .setScale(pair.mainCurrency.scale, RoundingMode.HALF_DOWN)
-
-//        if (isLogTime)
-//            LOG.debug { "safeAmount $safeAmount" }
-
-        return safeAmount
 
     }
 

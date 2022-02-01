@@ -121,6 +121,7 @@ class WebSocketExchange(
 
     override fun getName(): String = exchange.getName()
     override fun getFee(): Double = exchange.getFee()
+
     @Synchronized
     override fun place(order: Order) {
         val xchangeOrderType =

@@ -25,17 +25,7 @@ class TradeController(
         LOG.debug { "trade controller started" }
         scope.launch {
             while(true) {
-//                isLogTime = (System.currentTimeMillis() - lastLog) > 5000
-
-//                if(isLogTime) {
-//                    LOG.debug { "start checking"}
-//                    lastLog = System.currentTimeMillis()
-//                }
                 checkAllPairs()
-//                if(isLogTime)
-//                    LOG.debug { "done checking"}
-
-//                delay(20)
             }
         }
     }
@@ -46,27 +36,6 @@ class TradeController(
 
     private fun checkPair(pair: CurrencyPair) {
         val orderBooks = updateProvider.getOrderBooks(pair)
-
-
-
-//        isLogTime = (System.currentTimeMillis() - lastLog) > 1000
-//
-//        if(isLogTime) {
-//            LOG.debug { "checking $pair - ${orderBooks.map { it.exchange }} "}
-//            LOG.debug { "${orderBooks.map { book ->
-//                "${book.exchange.getName()} - ${book.sellOffers.take(4).map { it.price }}"
-//            }}" }
-//            lastLog = System.currentTimeMillis()
-//        }
-
-//        if(isLogTime) {
-//            LOG.debug { "${orderBooks.size} orderBooks" }
-//            val now = System.currentTimeMillis()
-//            val map = orderBooks.map { now - it.timestamp }
-//            LOG.debug {
-//                map
-//            }
-//        }
 
         if(orderBooks.size < 3)
             return
